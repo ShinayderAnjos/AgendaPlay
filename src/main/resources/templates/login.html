@@ -1,0 +1,60 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="~{fragmentos :: head('Entrar')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina auth">
+      <aside>
+        <p class="etiqueta">BOM TER VOCÊ DE VOLTA</p>
+        <h1>Menos espera.<br /><em>Mais jogo.</em></h1>
+        <p>Acesse sua conta para acompanhar quadras e reservas.</p>
+        <div class="mini-campo" aria-hidden="true">◯</div>
+      </aside>
+      <section class="painel">
+        <p class="etiqueta">SUA CONTA</p>
+        <h2>Entrar no AgendaPlay</h2>
+        <div th:if="${param.erro}" role="alert" class="aviso erro">
+          E-mail ou senha inválidos.
+        </div>
+        <div th:if="${param.cadastrado}" role="status" class="aviso sucesso">
+          Conta criada! Entre com seu e-mail e senha.
+        </div>
+        <div th:if="${param.saiu}" role="status" class="aviso sucesso">
+          Você saiu com segurança.
+        </div>
+        <form th:action="@{/login}" method="post">
+          <label for="email">E-mail</label
+          ><input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autocomplete="username"
+            placeholder="voce@exemplo.com"
+          /><label for="senha">Senha</label
+          ><input
+            id="senha"
+            name="senha"
+            type="password"
+            required
+            autocomplete="current-password"
+          /><button class="botao largo" type="submit">Entrar</button>
+        </form>
+        <p class="texto-menor">
+          Ainda não tem conta?
+          <a th:href="@{/cadastro/cliente}">Cadastre-se como cliente</a>
+        </p>
+        <p class="texto-menor">
+          <a th:href="@{/cadastro/proprietario}"
+            >Quero cadastrar minhas quadras</a
+          >
+        </p>
+      </section>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

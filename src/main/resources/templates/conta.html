@@ -1,0 +1,31 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="~{fragmentos :: head('Minha conta')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina estreita">
+      <p class="etiqueta">SEUS DADOS</p>
+      <h1 class="titulo">Minha conta</h1>
+      <section class="painel">
+        <span class="badge" th:text="${conta.perfil}"></span>
+        <h2 th:text="${conta.nome}"></h2>
+        <dl>
+          <dt>E-mail</dt>
+          <dd th:text="${conta.email}"></dd>
+          <dt>CPF</dt>
+          <dd th:text="${conta.cpf == null ? 'Não informado' : conta.cpf}"></dd>
+          <dt>Telefone</dt>
+          <dd
+            th:text="${#strings.isEmpty(conta.telefone) ? 'Não informado' : conta.telefone}"
+          ></dd>
+        </dl>
+        <a class="botao" th:href="@{/painel}">Ir para minhas quadras</a>
+      </section>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

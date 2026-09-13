@@ -1,0 +1,4 @@
+# Copie para application-local.properties. Não compartilhe o arquivo preenchido.
+spring.datasource.url=jdbc:postgresql://localhost:5432/AgendaPlay
+spring.datasource.username=postgres
+spring.datasource.password=123456

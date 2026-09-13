@@ -1,0 +1,72 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:fragment="head(titulo)">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title th:text="${titulo} + ' | AgendaPlay'">AgendaPlay</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}" />
+    <script defer th:src="@{/js/app.js}"></script>
+  </head>
+  <body>
+    <header th:fragment="header" class="cabecalho">
+      <a class="marca" th:href="@{/}"
+        ><span class="marca-icone">A</span>Agenda<span>Play</span></a
+      >
+      <nav aria-label="Menu principal">
+        <a sec:authorize="isAuthenticated()" th:href="@{/painel}">Quadras</a
+        ><a sec:authorize="isAuthenticated()" th:href="@{/reservas}">Reservas</a
+        ><a sec:authorize="isAuthenticated()" th:href="@{/conta}"
+          >Minha conta</a
+        >
+        <a sec:authorize="isAnonymous()" th:href="@{/login}">Entrar</a
+        ><a
+          sec:authorize="isAnonymous()"
+          class="botao pequeno"
+          th:href="@{/cadastro/cliente}"
+          >Criar conta</a
+        >
+        <form
+          sec:authorize="isAuthenticated()"
+          th:action="@{/sair}"
+          method="post"
+        >
+          <button class="botao secundario pequeno" type="submit">Sair</button>
+        </form>
+      </nav>
+    </header>
+    <div th:fragment="avisos">
+      <div
+        th:if="${sucesso}"
+        class="aviso sucesso"
+        role="status"
+        th:text="${sucesso}"
+      ></div>
+      <div
+        th:if="${erro}"
+        class="aviso erro"
+        role="alert"
+        th:text="${erro}"
+      ></div>
+    </div>
+    <div
+      th:fragment="erros"
+      class="aviso erro"
+      role="alert"
+      th:if="${#fields.hasAnyErrors()}"
+    >
+      <p>Confira os dados para continuar:</p>
+      <ul>
+        <li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li>
+      </ul>
+    </div>
+    <footer th:fragment="footer">
+      <span class="marca-texto">AgendaPlay</span
+      ><span>Seu esporte, na hora certa.</span
+      ><span>Projeto acadêmico · versão de testes</span>
+    </footer>
+  </body>
+</html>

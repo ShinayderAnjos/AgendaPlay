@@ -1,0 +1,63 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="~{fragmentos :: head('Encontre seu próximo jogo')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina">
+      <section class="hero">
+        <div>
+          <p class="etiqueta">MAIS ESPORTE. MENOS COMPLICAÇÃO.</p>
+          <h1>Seu próximo jogo<br />começa <em>aqui.</em></h1>
+          <p class="intro">
+            Encontre uma quadra, escolha um horário livre e reúna seu time. Tudo
+            em um só lugar.
+          </p>
+          <div class="acoes">
+            <a class="botao" th:href="@{/painel}"
+              >Encontrar uma quadra <span aria-hidden="true">↗</span></a
+            ><a class="link" th:href="@{/cadastro/proprietario}"
+              >Sou proprietário →</a
+            >
+          </div>
+          <div class="hero-nota">
+            <span class="ponto"></span>Agenda organizada. Tempo para jogar.
+          </div>
+        </div>
+        <div class="ilustracao" aria-label="Ilustração de uma quadra esportiva">
+          <div class="campo">
+            <div class="linha-meio"></div>
+            <div class="circulo"></div>
+            <div class="area esquerda"></div>
+            <div class="area direita"></div>
+          </div>
+          <span class="selo">O seu lugar é em quadra.</span>
+        </div>
+      </section>
+      <section class="passos">
+        <article>
+          <span>01</span>
+          <h2>Encontre seu espaço</h2>
+          <p>Consulte as quadras, modalidades, endereços e valores por hora.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h2>Escolha seu horário</h2>
+          <p>
+            Veja os intervalos livres e reserve o período que funciona para
+            você.
+          </p>
+        </article>
+        <article>
+          <span>03</span>
+          <h2>É hora de jogar</h2>
+          <p>Acompanhe suas reservas e mantenha os detalhes sempre à mão.</p>
+        </article>
+      </section>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

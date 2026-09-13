@@ -1,0 +1,107 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="~{fragmentos :: head('Criar conta')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina auth">
+      <aside>
+        <p class="etiqueta">FAÇA PARTE DO JOGO</p>
+        <h1 th:if="${tipo=='cliente'}">Seu time.<br /><em>Seu horário.</em></h1>
+        <h1 th:if="${tipo=='proprietario'}">
+          Sua quadra.<br /><em>Bem organizada.</em>
+        </h1>
+        <p
+          th:text="${tipo=='cliente' ? 'Crie sua conta para encontrar quadras e reservar seu próximo jogo.' : 'Cadastre seu espaço, organize os horários e acompanhe as reservas.'}"
+        ></p>
+        <a
+          th:href="${tipo=='cliente' ? '/cadastro/proprietario' : '/cadastro/cliente'}"
+          th:text="${tipo=='cliente' ? 'Sou proprietário de quadra →' : 'Quero me cadastrar como cliente →'}"
+        ></a>
+      </aside>
+      <section class="painel">
+        <p class="etiqueta" th:text="${perfil}"></p>
+        <h2>Criar sua conta</h2>
+        <p class="texto-menor">
+          Telefone é opcional. CPF é obrigatório para clientes.
+        </p>
+        <form
+          th:action="@{/cadastro/{tipo}(tipo=${tipo})}"
+          th:object="${form}"
+          method="post"
+        >
+          <div th:replace="~{fragmentos :: erros}"></div>
+          <label for="nome">Nome completo</label
+          ><input
+            id="nome"
+            th:field="*{nome}"
+            autocomplete="name"
+            required
+            minlength="3"
+            maxlength="120"
+          />
+          <label for="email">E-mail</label
+          ><input
+            id="email"
+            th:field="*{email}"
+            type="email"
+            autocomplete="email"
+            required
+            maxlength="160"
+          />
+          <div class="dupla">
+            <div>
+              <label for="cpf"
+                >CPF
+                <small th:if="${tipo=='proprietario'}">(opcional)</small></label
+              ><input
+                id="cpf"
+                th:field="*{cpf}"
+                placeholder="000.000.000-00"
+                inputmode="numeric"
+                maxlength="14"
+                th:required="${tipo=='cliente'}"
+              />
+            </div>
+            <div>
+              <label for="telefone">Telefone <small>(opcional)</small></label
+              ><input
+                id="telefone"
+                th:field="*{telefone}"
+                type="tel"
+                autocomplete="tel"
+                maxlength="20"
+              />
+            </div>
+          </div>
+          <label for="senha">Senha</label
+          ><input
+            id="senha"
+            name="senha"
+            type="password"
+            minlength="8"
+            maxlength="60"
+            autocomplete="new-password"
+            required
+          /><small>Use pelo menos 8 caracteres.</small>
+          <label for="confirmacaoSenha">Confirme a senha</label
+          ><input
+            id="confirmacaoSenha"
+            name="confirmacaoSenha"
+            type="password"
+            autocomplete="new-password"
+            required
+          />
+          <button type="submit" class="botao largo">Criar conta</button>
+        </form>
+        <p class="texto-menor">
+          Já tem conta? <a th:href="@{/login}">Entrar</a>
+        </p>
+      </section>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

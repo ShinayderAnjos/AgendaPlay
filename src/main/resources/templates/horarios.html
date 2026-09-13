@@ -1,0 +1,148 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="~{fragmentos :: head('Horários')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina">
+      <a th:href="@{/painel}">← Voltar às quadras</a>
+      <div class="titulo-linha">
+        <div>
+          <p class="etiqueta" th:text="${quadra.modalidade}"></p>
+          <h1 class="titulo" th:text="${quadra.nome}"></h1>
+          <p th:text="${quadra.localizacao}"></p>
+        </div>
+        <p class="preco">
+          R$
+          <strong
+            th:text="${#numbers.formatDecimal(quadra.valorHora,1,'POINT',2,'COMMA')}"
+          ></strong
+          ><small> / hora</small>
+        </p>
+      </div>
+      <div th:replace="~{fragmentos :: avisos}"></div>
+      <div class="agenda-layout">
+        <section class="painel">
+          <h2
+            th:text="${dono ? 'Disponibilidades da quadra' : 'Horários livres'}"
+          ></h2>
+          <p class="texto-menor">
+            Horários de Brasília · intervalos no mesmo dia.
+          </p>
+          <div th:if="${dono}">
+            <p th:if="${#lists.isEmpty(disponibilidades)}" class="vazio-texto">
+              Nenhum horário cadastrado. Adicione o primeiro intervalo ao lado.
+            </p>
+            <article class="horario" th:each="d : ${disponibilidades}">
+              <div>
+                <strong
+                  th:text="${#temporals.format(d.data,'dd/MM/yyyy')}"
+                ></strong>
+                <p>
+                  <span th:text="${d.horaInicio}"></span> –
+                  <span th:text="${d.horaFim}"></span>
+                </p>
+                <small th:text="${d.ativo ? 'Ativa' : 'Inativa'}"></small>
+              </div>
+              <form
+                th:if="${d.ativo}"
+                th:action="@{/proprietario/quadras/{q}/disponibilidades/{id}/inativar(q=${quadra.id},id=${d.id})}"
+                method="post"
+              >
+                <button class="botao secundario pequeno" type="submit">
+                  Inativar
+                </button>
+              </form>
+            </article>
+          </div>
+          <div th:if="${!dono}">
+            <p th:if="${#lists.isEmpty(horarios)}" class="vazio-texto">
+              Não há horários livres para esta quadra no momento.
+            </p>
+            <article class="horario" th:each="h : ${horarios}">
+              <div>
+                <strong
+                  th:text="${#temporals.format(h.data,'dd/MM/yyyy')}"
+                ></strong>
+                <p>
+                  <span th:text="${h.horaInicio}"></span> –
+                  <span th:text="${h.horaFim}"></span>
+                </p>
+              </div>
+              <button
+                type="button"
+                class="botao secundario pequeno escolher-horario"
+                th:attr="data-data=${h.data},data-inicio=${h.horaInicio},data-fim=${h.horaFim}"
+              >
+                Escolher
+              </button>
+            </article>
+          </div>
+        </section>
+        <section class="painel">
+          <h2
+            th:text="${dono ? 'Adicionar disponibilidade' : 'Sua próxima reserva'}"
+          ></h2>
+          <p
+            class="texto-menor"
+            th:text="${dono ? 'Defina o intervalo em que a quadra estará disponível.' : 'Escolha um intervalo livre ou informe parte dele. O valor é proporcional à duração.'}"
+          ></p>
+          <form
+            id="form-periodo"
+            th:action="${dono ? '/proprietario/quadras/'+quadra.id+'/agenda' : '/cliente/quadras/'+quadra.id+'/reservar'}"
+            th:object="${form}"
+            method="post"
+            th:attr="data-valor=${quadra.valorHora}"
+          >
+            <div th:replace="~{fragmentos :: erros}"></div>
+            <label for="data">Data</label
+            ><input id="data" th:field="*{data}" type="date" required />
+            <div class="dupla">
+              <div>
+                <label for="horaInicio">Início</label
+                ><input
+                  id="horaInicio"
+                  th:field="*{horaInicio}"
+                  type="time"
+                  required
+                  step="60"
+                />
+              </div>
+              <div>
+                <label for="horaFim">Fim</label
+                ><input
+                  id="horaFim"
+                  th:field="*{horaFim}"
+                  type="time"
+                  required
+                  step="60"
+                />
+              </div>
+            </div>
+            <p
+              th:if="${!dono}"
+              id="valor-previsto"
+              class="preco"
+              aria-live="polite"
+            >
+              Selecione os horários para ver o valor.
+            </p>
+            <button
+              class="botao largo"
+              type="submit"
+              th:text="${dono ? 'Adicionar horário' : 'Confirmar reserva'}"
+            ></button>
+          </form>
+          <p th:if="${!dono}" class="texto-menor">
+            O valor final e a disponibilidade são confirmados pelo sistema ao
+            reservar.
+          </p>
+        </section>
+      </div>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

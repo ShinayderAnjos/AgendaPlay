@@ -1,0 +1,8 @@
+{
+  "version": "0.2.0",
+  "configurations": [{
+    "type": "java", "name": "AgendaPlay", "request": "launch",
+    "mainClass": "br.com.agendaplay.AgendaPlayApplication",
+    "projectName": "agendaplay", "cwd": "${workspaceFolder}"
+  }]
+}

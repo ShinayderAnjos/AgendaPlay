@@ -1,0 +1,94 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="~{fragmentos :: head('Reservas')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina">
+      <p class="etiqueta">TUDO ORGANIZADO</p>
+      <h1
+        class="titulo"
+        th:text="${dono ? 'Agenda das minhas quadras' : 'Minhas reservas'}"
+      ></h1>
+      <p>Confira os próximos jogos e o histórico de agendamentos.</p>
+      <div th:replace="~{fragmentos :: avisos}"></div>
+      <form
+        th:if="${dono}"
+        method="get"
+        th:action="@{/reservas}"
+        class="filtros"
+      >
+        <div>
+          <label for="quadra">Quadra</label
+          ><select id="quadra" name="quadra">
+            <option value="">Todas as minhas quadras</option>
+            <option
+              th:each="q : ${quadras}"
+              th:value="${q.id}"
+              th:text="${q.nome}"
+              th:selected="${filtroQuadra==q.id}"
+            ></option>
+          </select>
+        </div>
+        <div>
+          <label for="data">Data</label
+          ><input id="data" name="data" type="date" th:value="${filtroData}" />
+        </div>
+        <button type="submit" class="botao">Filtrar</button
+        ><a th:href="@{/reservas}">Limpar</a>
+      </form>
+      <div th:if="${#lists.isEmpty(reservas)}" class="vazio">
+        <span aria-hidden="true">◷</span>
+        <h2>Nenhuma reserva por aqui</h2>
+        <p
+          th:text="${dono ? 'As reservas das suas quadras aparecerão nesta agenda.' : 'Que tal encontrar uma quadra e marcar seu próximo jogo?'}"
+        ></p>
+        <a class="botao" th:href="@{/painel}">Ver quadras</a>
+      </div>
+      <section class="lista-reservas">
+        <article class="reserva painel" th:each="r : ${reservas}">
+          <div class="reserva-data">
+            <strong th:text="${#temporals.format(r.data,'dd')}"></strong
+            ><span th:text="${#temporals.format(r.data,'MM/yyyy')}"></span>
+          </div>
+          <div class="reserva-dados">
+            <small th:text="'Reserva #'+${r.id}"></small>
+            <h2 th:text="${r.nomeQuadra}"></h2>
+            <p>
+              <span th:text="${r.horaInicio}"></span> –
+              <span th:text="${r.horaFim}"></span> · R$
+              <span
+                th:text="${#numbers.formatDecimal(r.valorTotal,1,'POINT',2,'COMMA')}"
+              ></span>
+            </p>
+            <p th:if="${dono}" th:text="'Cliente: '+${r.nomeCliente}"></p>
+            <span
+              class="badge"
+              th:classappend="${r.situacao=='CANCELADA' ? 'cancelada' : ''}"
+              th:text="${r.situacao}"
+            ></span>
+          </div>
+          <form
+            th:if="${r.situacao=='CONFIRMADA'}"
+            th:action="@{/reservas/{id}/cancelar(id=${r.id})}"
+            method="post"
+            class="cancelar-reserva"
+          >
+            <button type="submit" class="botao secundario pequeno">
+              Cancelar reserva
+            </button>
+          </form>
+        </article>
+      </section>
+      <p class="texto-menor">
+        Cancelamentos preservam o histórico. Nesta versão de testes, são
+        permitidos antes do início da reserva; a política final será validada
+        com os usuários.
+      </p>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>
