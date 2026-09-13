@@ -49,4 +49,12 @@ A política de antecedência do cancelamento é provisória e requer definição
 
 ## Conexão do banco principal
 
-Pendente nesta etapa: a conexão do pgAdmin está configurada como localhost:5432, usuário postgres. A senha preenchida no arquivo local foi recusada pelo PostgreSQL. Nenhuma senha foi incluída na entrega.
+Concluída em 13/09/2026 após a atualização informada pelo usuário. Aplicação disponível em http://localhost:8080, conectada ao PostgreSQL 17.6, banco `AgendaPlay`, porta 5432.
+
+Conferência direta por IPv4 (127.0.0.1): tabelas `usuario`, `quadra`, `disponibilidade`, `reserva` e `flyway_schema_history` presentes no schema `agendaplay`; migração V1 registrada com sucesso. O Spring Boot iniciou normalmente e validou a estrutura existente.
+
+Verificação adicional no navegador: página inicial, login e cadastros responderam normalmente; tentativa de login com usuário inexistente retornou mensagem genérica; rota de reservas exigiu autenticação. Nenhum cadastro foi criado nessa verificação do banco principal.
+
+O endereço `localhost` apresentou diferença entre IPv4 e IPv6 na conexão direta pelo psql nesta máquina: IPv4 foi validado. A aplicação iniciou e conectou normalmente.
+
+A configuração privada continua fora do versionamento e do pacote para a equipe. Nenhuma senha foi incluída na entrega.
