@@ -9,7 +9,6 @@
     <header th:replace="~{fragmentos :: header}"></header>
     <main class="pagina estreita">
       <section class="painel">
-        <p class="etiqueta">VAMOS CONFERIR</p>
         <h1 class="titulo">Não foi possível continuar</h1>
         <p
           th:text="${mensagem != null ? mensagem : (status == 404 ? 'Esta página não foi encontrada.' : (status == 403 ? 'Acesso não permitido ou sessão expirada. Entre novamente e tente outra vez.' : 'Ocorreu um problema ao processar sua solicitação. Tente novamente.'))}"

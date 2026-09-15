@@ -7,16 +7,9 @@
   <head th:replace="~{fragmentos :: head('Entrar')}"></head>
   <body>
     <header th:replace="~{fragmentos :: header}"></header>
-    <main class="pagina auth">
-      <aside>
-        <p class="etiqueta">BOM TER VOCÊ DE VOLTA</p>
-        <h1>Menos espera.<br /><em>Mais jogo.</em></h1>
-        <p>Acesse sua conta para acompanhar quadras e reservas.</p>
-        <div class="mini-campo" aria-hidden="true">◯</div>
-      </aside>
+    <main class="pagina estreita">
       <section class="painel">
-        <p class="etiqueta">SUA CONTA</p>
-        <h2>Entrar no AgendaPlay</h2>
+        <h1>Entrar no AgendaPlay</h1>
         <div th:if="${param.erro}" role="alert" class="aviso erro">
           E-mail ou senha inválidos.
         </div>
@@ -42,7 +35,7 @@
             type="password"
             required
             autocomplete="current-password"
-          /><button class="botao largo" type="submit">Entrar</button>
+          /><button class="botao" type="submit">Entrar</button>
         </form>
         <p class="texto-menor">
           Ainda não tem conta?

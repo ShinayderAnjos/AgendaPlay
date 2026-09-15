@@ -12,38 +12,35 @@
         <div>
           <p
             class="etiqueta"
-            th:text="${dono ? 'ÁREA DO PROPRIETÁRIO' : 'VAMOS JOGAR?'}"
+            th:text="${dono ? 'ÁREA DO PROPRIETÁRIO' : 'ÁREA DO CLIENTE'}"
           ></p>
           <h1
             class="titulo"
-            th:text="${dono ? 'Minhas quadras' : 'Encontre sua quadra'}"
+            th:text="${dono ? 'Minhas quadras' : 'Quadras disponíveis'}"
           ></h1>
           <p
-            th:text="${dono ? 'Cuide dos seus espaços e organize os próximos horários.' : 'Escolha a modalidade, confira os detalhes e consulte a agenda.'}"
+            th:text="${dono ? 'Cadastre quadras e gerencie os horários disponíveis.' : 'Escolha a modalidade, confira os detalhes e consulte a agenda.'}"
           ></p>
         </div>
         <a th:if="${dono}" class="botao" th:href="@{/proprietario/quadras/nova}"
-          >+ Cadastrar quadra</a
+          >Cadastrar quadra</a
         >
       </div>
       <div th:replace="~{fragmentos :: avisos}"></div>
       <div th:if="${#lists.isEmpty(quadras)}" class="vazio">
-        <span aria-hidden="true">◎</span>
         <h2
-          th:text="${dono ? 'Sua primeira quadra começa aqui' : 'Ainda não há quadras disponíveis'}"
+          th:text="${dono ? 'Nenhuma quadra cadastrada' : 'Ainda não há quadras disponíveis'}"
         ></h2>
         <p
           th:text="${dono ? 'Cadastre um espaço e depois adicione os horários disponíveis.' : 'Os proprietários ainda estão preparando a agenda. Volte em breve.'}"
         ></p>
       </div>
-      <div class="grade">
-        <article class="card" th:each="q : ${quadras}">
-          <div class="card-campo" aria-hidden="true">
-            <span>◯</span><b th:text="${q.modalidade}"></b>
-          </div>
-          <div class="card-corpo">
-            <span class="badge" th:text="${q.situacao}"></span>
+      <div class="lista-quadras">
+        <article class="quadra" th:each="q : ${quadras}">
+          <div class="quadra-dados">
+            <span class="situacao" th:text="${q.situacao}"></span>
             <h2 th:text="${q.nome}"></h2>
+            <p>Modalidade: <span th:text="${q.modalidade}"></span></p>
             <p th:text="${q.localizacao}"></p>
             <p class="preco">
               R$
@@ -55,9 +52,9 @@
             <div class="acoes">
               <a
                 th:if="${!dono}"
-                class="botao largo"
+                class="botao"
                 th:href="@{/cliente/quadras/{id}/horarios(id=${q.id})}"
-                >Ver horários →</a
+                >Ver horários</a
               ><a
                 th:if="${dono}"
                 class="botao"

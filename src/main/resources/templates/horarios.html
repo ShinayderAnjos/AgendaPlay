@@ -34,7 +34,8 @@
           </p>
           <div th:if="${dono}">
             <p th:if="${#lists.isEmpty(disponibilidades)}" class="vazio-texto">
-              Nenhum horário cadastrado. Adicione o primeiro intervalo ao lado.
+              Nenhum horário cadastrado. Adicione o primeiro intervalo no
+              formulário abaixo.
             </p>
             <article class="horario" th:each="d : ${disponibilidades}">
               <div>
@@ -52,9 +53,7 @@
                 th:action="@{/proprietario/quadras/{q}/disponibilidades/{id}/inativar(q=${quadra.id},id=${d.id})}"
                 method="post"
               >
-                <button class="botao secundario pequeno" type="submit">
-                  Inativar
-                </button>
+                <button class="botao" type="submit">Inativar</button>
               </form>
             </article>
           </div>
@@ -74,7 +73,7 @@
               </div>
               <button
                 type="button"
-                class="botao secundario pequeno escolher-horario"
+                class="botao escolher-horario"
                 th:attr="data-data=${h.data},data-inicio=${h.horaInicio},data-fim=${h.horaFim}"
               >
                 Escolher
@@ -84,7 +83,7 @@
         </section>
         <section class="painel">
           <h2
-            th:text="${dono ? 'Adicionar disponibilidade' : 'Sua próxima reserva'}"
+            th:text="${dono ? 'Adicionar disponibilidade' : 'Reservar horário'}"
           ></h2>
           <p
             class="texto-menor"
@@ -131,7 +130,7 @@
               Selecione os horários para ver o valor.
             </p>
             <button
-              class="botao largo"
+              class="botao"
               type="submit"
               th:text="${dono ? 'Adicionar horário' : 'Confirmar reserva'}"
             ></button>

@@ -13,9 +13,7 @@
   </head>
   <body>
     <header th:fragment="header" class="cabecalho">
-      <a class="marca" th:href="@{/}"
-        ><span class="marca-icone">A</span>Agenda<span>Play</span></a
-      >
+      <a class="marca" th:href="@{/}">AgendaPlay</a>
       <nav aria-label="Menu principal">
         <a sec:authorize="isAuthenticated()" th:href="@{/painel}">Quadras</a
         ><a sec:authorize="isAuthenticated()" th:href="@{/reservas}">Reservas</a
@@ -25,7 +23,7 @@
         <a sec:authorize="isAnonymous()" th:href="@{/login}">Entrar</a
         ><a
           sec:authorize="isAnonymous()"
-          class="botao pequeno"
+          class="botao"
           th:href="@{/cadastro/cliente}"
           >Criar conta</a
         >
@@ -34,7 +32,7 @@
           th:action="@{/sair}"
           method="post"
         >
-          <button class="botao secundario pequeno" type="submit">Sair</button>
+          <button class="botao" type="submit">Sair</button>
         </form>
       </nav>
     </header>
@@ -63,10 +61,6 @@
         <li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li>
       </ul>
     </div>
-    <footer th:fragment="footer">
-      <span class="marca-texto">AgendaPlay</span
-      ><span>Seu esporte, na hora certa.</span
-      ><span>Projeto acadêmico · versão de testes</span>
-    </footer>
+    <footer th:fragment="footer">AgendaPlay · Protótipo acadêmico</footer>
   </body>
 </html>

@@ -8,7 +8,6 @@
   <body>
     <header th:replace="~{fragmentos :: header}"></header>
     <main class="pagina">
-      <p class="etiqueta">TUDO ORGANIZADO</p>
       <h1
         class="titulo"
         th:text="${dono ? 'Agenda das minhas quadras' : 'Minhas reservas'}"
@@ -41,18 +40,17 @@
         ><a th:href="@{/reservas}">Limpar</a>
       </form>
       <div th:if="${#lists.isEmpty(reservas)}" class="vazio">
-        <span aria-hidden="true">◷</span>
-        <h2>Nenhuma reserva por aqui</h2>
+        <h2>Nenhuma reserva encontrada</h2>
         <p
-          th:text="${dono ? 'As reservas das suas quadras aparecerão nesta agenda.' : 'Que tal encontrar uma quadra e marcar seu próximo jogo?'}"
+          th:text="${dono ? 'As reservas das suas quadras aparecerão nesta agenda.' : 'Consulte as quadras para fazer uma reserva.'}"
         ></p>
         <a class="botao" th:href="@{/painel}">Ver quadras</a>
       </div>
       <section class="lista-reservas">
         <article class="reserva painel" th:each="r : ${reservas}">
           <div class="reserva-data">
-            <strong th:text="${#temporals.format(r.data,'dd')}"></strong
-            ><span th:text="${#temporals.format(r.data,'MM/yyyy')}"></span>
+            Data:
+            <span th:text="${#temporals.format(r.data,'dd/MM/yyyy')}"></span>
           </div>
           <div class="reserva-dados">
             <small th:text="'Reserva #'+${r.id}"></small>
@@ -65,11 +63,7 @@
               ></span>
             </p>
             <p th:if="${dono}" th:text="'Cliente: '+${r.nomeCliente}"></p>
-            <span
-              class="badge"
-              th:classappend="${r.situacao=='CANCELADA' ? 'cancelada' : ''}"
-              th:text="${r.situacao}"
-            ></span>
+            <span class="situacao" th:text="${r.situacao}"></span>
           </div>
           <form
             th:if="${r.situacao=='CONFIRMADA'}"
@@ -77,9 +71,7 @@
             method="post"
             class="cancelar-reserva"
           >
-            <button type="submit" class="botao secundario pequeno">
-              Cancelar reserva
-            </button>
+            <button type="submit" class="botao">Cancelar reserva</button>
           </form>
         </article>
       </section>

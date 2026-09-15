@@ -7,24 +7,10 @@
   <head th:replace="~{fragmentos :: head('Criar conta')}"></head>
   <body>
     <header th:replace="~{fragmentos :: header}"></header>
-    <main class="pagina auth">
-      <aside>
-        <p class="etiqueta">FAÇA PARTE DO JOGO</p>
-        <h1 th:if="${tipo=='cliente'}">Seu time.<br /><em>Seu horário.</em></h1>
-        <h1 th:if="${tipo=='proprietario'}">
-          Sua quadra.<br /><em>Bem organizada.</em>
-        </h1>
-        <p
-          th:text="${tipo=='cliente' ? 'Crie sua conta para encontrar quadras e reservar seu próximo jogo.' : 'Cadastre seu espaço, organize os horários e acompanhe as reservas.'}"
-        ></p>
-        <a
-          th:href="${tipo=='cliente' ? '/cadastro/proprietario' : '/cadastro/cliente'}"
-          th:text="${tipo=='cliente' ? 'Sou proprietário de quadra →' : 'Quero me cadastrar como cliente →'}"
-        ></a>
-      </aside>
+    <main class="pagina estreita">
       <section class="painel">
         <p class="etiqueta" th:text="${perfil}"></p>
-        <h2>Criar sua conta</h2>
+        <h1>Criar sua conta</h1>
         <p class="texto-menor">
           Telefone é opcional. CPF é obrigatório para clientes.
         </p>
@@ -95,10 +81,16 @@
             autocomplete="new-password"
             required
           />
-          <button type="submit" class="botao largo">Criar conta</button>
+          <button type="submit" class="botao">Criar conta</button>
         </form>
         <p class="texto-menor">
           Já tem conta? <a th:href="@{/login}">Entrar</a>
+        </p>
+        <p>
+          <a
+            th:href="${tipo=='cliente' ? '/cadastro/proprietario' : '/cadastro/cliente'}"
+            th:text="${tipo=='cliente' ? 'Cadastrar como proprietário' : 'Cadastrar como cliente'}"
+          ></a>
         </p>
       </section>
     </main>
