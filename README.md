@@ -13,13 +13,13 @@ Plataforma web de gestão e agendamento de quadras esportivas. Versão 0.1.0 par
 
 A senha do PostgreSQL é diferente da senha das contas de cliente/proprietário criadas na plataforma.
 
-O sistema aplica automaticamente a migração SQL pelo Flyway. No pgAdmin, atualize a árvore: **AgendaPlay → Schemas → agendaplay → Tables**. As quatro tabelas do domínio e o histórico de migrações aparecerão ali.
+O sistema aplica automaticamente a migração SQL pelo Flyway. No pgAdmin, atualize a árvore: **AgendaPlay → Schemas → agendaplay → Tables**. As sete tabelas do domínio e o histórico de migrações aparecerão ali.
 
 ## Primeiro teste em cinco passos
 
-1. Cadastre uma conta de **proprietário** pela página inicial e entre.
-2. Cadastre uma quadra ativa, com modalidade, endereço e valor por hora.
-3. Abra **Disponibilidades** e informe uma data futura, por exemplo das 08:00 às 18:00.
+1. Cadastre uma conta de **proprietário**, com CPF ou CNPJ válido e senha forte, e entre.
+2. Cadastre um **estabelecimento** e, depois, uma quadra ativa vinculada a ele, com modalidade, localização e valor por hora.
+3. Abra **Disponibilidades** e informe um horário avulso ou use **Padrões semanais** para gerar os horários até o fim do mês seguinte. Confira preço e intervalo entre reservas.
 4. Saia e crie uma conta de **cliente**, com CPF válido para validação. Em ambiente de teste, use dados fictícios do roteiro.
 5. Escolha a quadra, selecione um horário e confirme a reserva. Consulte **Reservas**. Ao entrar como proprietário, a mesma reserva aparecerá na agenda da quadra.
 
@@ -71,9 +71,14 @@ Compatibilidade Java/Spring: https://docs.spring.io/spring-boot/3.5/system-requi
 | --- | --- |
 | Base da Sprint 1 | Arquitetura em camadas; banco versionado; cadastro de clientes e proprietários; login/logout; separação dos perfis; cadastro e consulta de quadras; frontend integrado |
 | Fluxo central da Sprint 2 | Edição/inativação de quadras; disponibilidades; cálculo de horários livres; reservas; bloqueio de conflitos; consulta por cliente; agenda do proprietário com filtros |
+| Sprint 3 | Senha forte; CPF/CNPJ alfanumérico; estabelecimentos; filtros; mapa; padrões semanais com renovação; tolerância configurável; preços por horário/dia; avisos de cancelamento; agenda diária navegável |
 | Regra provisória | Cancelamento antes do início, sem antecedência mínima adicional; depende de validação do Product Owner e usuários |
 
 A consulta de contas é feita em **Minha conta**. O proprietário vê somente o nome do cliente associado às reservas de suas próprias quadras. Não foi criada uma listagem pública de pessoas nem um perfil de administrador, pois isso não está previsto nas histórias fornecidas.
+
+## Sprint 3
+
+Veja [requisitos, decisões e evidências da Sprint 3](docs/05_sprint3.md). O CSS original foi preservado; os complementos ficam em `sprint3.css`. A seleção no mapa usa Leaflet local e imagens do OpenStreetMap (necessita internet); também há acesso ao Google Maps. Não exige chave de API.
 
 ## Testes
 
@@ -95,6 +100,6 @@ Cada tester pode executar localmente com seu PostgreSQL. `localhost` aponta para
 - **Porta 8080 ocupada:** encerre a outra execução do AgendaPlay ou defina `server.port=8082` na configuração local e acesse a nova porta.
 - **Tabelas não aparecem no pgAdmin:** atualize o schema `agendaplay`, não somente `public`.
 - **Migração recusada em tabelas criadas manualmente:** não exclua dados nem ative `clean`/`baseline` automaticamente; compare a estrutura com a migração antes de decidir a correção.
-- **Extensão btree_gist recusada:** a criação inicial requer permissão para instalar a extensão no banco. O responsável pelo PostgreSQL pode executar o comando documentado em `banco/01_criacao_banco_e_tabelas.txt`.
+- **Extensão btree_gist recusada:** a criação inicial requer permissão para instalar a extensão no banco. O responsável pelo PostgreSQL pode executar o comando documentado em `src/main/resources/db/migration/V1__estrutura_inicial.sql`.
 
 A validação técnica automatizada não substitui a aceitação de você, Lázaro, Diego e representantes dos usuários.

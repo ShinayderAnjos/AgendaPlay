@@ -12,7 +12,8 @@
         <p class="etiqueta" th:text="${perfil}"></p>
         <h1>Criar sua conta</h1>
         <p class="texto-menor">
-          Telefone é opcional. CPF é obrigatório para clientes.
+          Telefone é opcional. Clientes informam CPF; proprietários, CPF ou
+          CNPJ.
         </p>
         <form
           th:action="@{/cadastro/{tipo}(tipo=${tipo})}"
@@ -40,16 +41,17 @@
           />
           <div class="dupla">
             <div>
-              <label for="cpf"
-                >CPF
-                <small th:if="${tipo=='proprietario'}">(opcional)</small></label
+              <label
+                for="cpf"
+                th:text="${tipo=='cliente' ? 'CPF' : 'CPF ou CNPJ'}"
+              ></label
               ><input
                 id="cpf"
                 th:field="*{cpf}"
-                placeholder="000.000.000-00"
-                inputmode="numeric"
-                maxlength="14"
-                th:required="${tipo=='cliente'}"
+                th:placeholder="${tipo=='cliente' ? '000.000.000-00' : 'CPF ou CNPJ, inclusive com letras'}"
+                th:attr="inputmode=${tipo=='cliente' ? 'numeric' : 'text'}"
+                maxlength="18"
+                required
               />
             </div>
             <div>
@@ -72,7 +74,11 @@
             maxlength="60"
             autocomplete="new-password"
             required
-          /><small>Use pelo menos 8 caracteres.</small>
+          /><small
+            >Use de 8 a 60 caracteres, com maiúscula, minúscula, número e
+            símbolo.</small
+          >
+          <p id="forca-senha" class="texto-menor" aria-live="polite"></p>
           <label for="confirmacaoSenha">Confirme a senha</label
           ><input
             id="confirmacaoSenha"

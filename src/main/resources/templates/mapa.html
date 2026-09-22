@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <section th:fragment="seletor" class="seletor-mapa">
+      <details>
+        <summary>Escolher localização no mapa</summary>
+        <p class="texto-menor">
+          Abra o mapa, aproxime e clique no ponto do estabelecimento. Você
+          também pode usar sua localização ou informar coordenadas do Google
+          Maps. O endereço acima continua editável.
+        </p>
+        <button type="button" class="botao secundario" id="minha-localizacao">
+          Usar minha localização
+        </button>
+        <a
+          id="abrir-google"
+          href="https://www.google.com/maps"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Abrir Google Maps</a
+        >
+        <div id="mapa" aria-label="Mapa para escolher localização"></div>
+        <p id="mapa-status" role="status">Clique no mapa para selecionar.</p>
+      </details>
+      <div class="dupla">
+        <div>
+          <label for="latitude">Latitude (opcional)</label
+          ><input
+            type="number"
+            id="latitude"
+            th:field="*{latitude}"
+            min="-90"
+            max="90"
+            step="0.0000001"
+          />
+        </div>
+        <div>
+          <label for="longitude">Longitude (opcional)</label
+          ><input
+            type="number"
+            id="longitude"
+            th:field="*{longitude}"
+            min="-180"
+            max="180"
+            step="0.0000001"
+          />
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

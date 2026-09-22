@@ -1,0 +1,135 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="~{fragmentos :: head('Padrões semanais')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina">
+      <h1 class="titulo">Padrões semanais</h1>
+      <div th:replace="~{fragmentos :: avisos}"></div>
+      <p th:text="${quadra.nome}"></p>
+      <a th:href="@{/proprietario/quadras/{id}/agenda(id=${quadra.id})}"
+        >← Horários avulsos e disponibilidades</a
+      >
+      <p>
+        O sistema cria horários até o fim do mês seguinte e renova a agenda
+        enquanto o padrão estiver ativo. Horários avulsos existentes têm
+        prioridade. Para substituir um dia específico, inative o horário gerado
+        e cadastre um avulso.
+      </p>
+      <div class="agenda-layout">
+        <section class="painel">
+          <h2>Novo padrão</h2>
+          <label for="modelo">Começar com um modelo</label
+          ><select id="modelo">
+            <option value="">Personalizado</option>
+            <option value="manha">Manhã · 08:00 às 12:00 · 60 min</option>
+            <option value="tarde">Tarde · 13:00 às 18:00 · 60 min</option>
+            <option value="noite">Noite · 18:00 às 23:00 · 60 min</option>
+            <option value="fimsemana">
+              Fim de semana · 08:00 às 18:00 · 90 min
+            </option>
+          </select>
+          <form
+            id="form-padrao"
+            th:action="@{/proprietario/quadras/{id}/padroes(id=${quadra.id})}"
+            th:object="${form}"
+            method="post"
+          >
+            <div th:replace="~{fragmentos :: erros}"></div>
+            <fieldset>
+              <legend>Dias da semana</legend>
+              <label
+                class="check"
+                th:each="dia,i : ${ {'Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'} }"
+                ><input
+                  type="checkbox"
+                  th:field="*{dias}"
+                  th:value="${i.count}" /><span th:text="${dia}"></span
+              ></label>
+            </fieldset>
+            <div class="dupla">
+              <div>
+                <label for="horaInicio">Abertura</label
+                ><input
+                  id="horaInicio"
+                  th:field="*{horaInicio}"
+                  type="time"
+                  required
+                />
+              </div>
+              <div>
+                <label for="horaFim">Encerramento</label
+                ><input
+                  id="horaFim"
+                  th:field="*{horaFim}"
+                  type="time"
+                  required
+                />
+              </div>
+            </div>
+            <label for="duracaoMinutos"
+              >Duração sugerida de cada horário (minutos)</label
+            ><input
+              id="duracaoMinutos"
+              th:field="*{duracaoMinutos}"
+              type="number"
+              min="1"
+              max="1440"
+              required
+            /><label for="toleranciaMinutos"
+              >Intervalo entre horários (minutos)</label
+            ><input
+              id="toleranciaMinutos"
+              th:field="*{toleranciaMinutos}"
+              type="number"
+              min="0"
+              max="1440"
+              required
+            /><label for="valorHora">Preço por hora (R$)</label
+            ><input
+              id="valorHora"
+              th:field="*{valorHora}"
+              type="number"
+              min="0"
+              max="99999999.99"
+              step="0.01"
+              required
+            />
+            <p id="sugestoes" aria-live="polite"></p>
+            <button class="botao" type="submit">
+              Criar padrão e gerar horários
+            </button>
+          </form>
+        </section>
+        <section class="painel">
+          <h2>Padrões cadastrados</h2>
+          <p th:if="${#lists.isEmpty(padroes)}">Nenhum padrão cadastrado.</p>
+          <article class="horario" th:each="p : ${padroes}">
+            <div>
+              <strong th:text="${p.horaInicio}+' – '+${p.horaFim}"></strong>
+              <p>Dias: <span class="dias-padrao" th:text="${p.dias}"></span></p>
+              <p
+                th:text="${p.duracaoMinutos}+' min + '+${p.toleranciaMinutos}+' min de intervalo · R$ '+${p.valorHora}+'/hora'"
+              ></p>
+              <span th:text="${p.ativo ? 'Ativo' : 'Desativado'}"></span>
+              <form
+                th:if="${p.ativo}"
+                th:action="@{/proprietario/quadras/{q}/padroes/{id}/desativar(q=${quadra.id},id=${p.id})}"
+                method="post"
+              >
+                <button class="botao secundario pequeno" type="submit">
+                  Desativar padrão
+                </button>
+              </form>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

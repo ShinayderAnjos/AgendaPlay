@@ -1,0 +1,13 @@
+Ferramentas utilizadas no desenvolvimento do AgendaPlay
+
+Banco de dados
+Utilizamos o PostgreSQL para armazenar os dados de usuários, quadras, disponibilidades e reservas. O pgAdmin auxilia na consulta e administração do banco. A linguagem SQL permite criar tabelas e consultar informações, enquanto o Flyway controla as versões da estrutura do banco e aplica as migrações.
+
+Backend
+O backend foi desenvolvido em Java, com Spring Boot, responsável por organizar a aplicação e executar as regras de negócio. O Spring MVC recebe as solicitações das telas, e o Spring JDBC realiza as consultas e gravações no PostgreSQL. O Spring Security cuida do login, da proteção das senhas e das permissões de clientes e proprietários.
+
+Frontend
+Utilizamos HTML para estruturar as páginas, CSS para definir a aparência e JavaScript para pequenas interações, como selecionar horários e exibir o valor previsto da reserva. O Thymeleaf conecta as páginas aos dados do backend. Nas duas primeiras sprints, a interface foi mantida básica, permitindo utilizar e validar as funcionalidades antes da elaboração visual prevista para a terceira sprint.
+
+Desenvolvimento e testes
+O VS Code é utilizado para editar o código, o Maven gerencia as dependências e gera o executável, e o Git controla as alterações do projeto. A validação inclui testes automatizados com JUnit e verificações no navegador com Playwright.

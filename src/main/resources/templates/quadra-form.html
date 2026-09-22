@@ -23,6 +23,25 @@
           method="post"
         >
           <div th:replace="~{fragmentos :: erros}"></div>
+          <label for="idEstabelecimento">Estabelecimento</label
+          ><select
+            id="idEstabelecimento"
+            th:field="*{idEstabelecimento}"
+            required
+          >
+            <option value="">Selecione</option>
+            <option
+              th:each="e : ${estabelecimentos}"
+              th:value="${e.id}"
+              th:text="${e.nome}"
+              th:attr="data-endereco=${e.localizacao},data-latitude=${e.latitude},data-longitude=${e.longitude}"
+            ></option>
+          </select>
+          <p>
+            <a th:href="@{/proprietario/estabelecimentos/novo}"
+              >Cadastrar estabelecimento</a
+            >
+          </p>
           <label for="nome">Nome da quadra</label
           ><input
             id="nome"
@@ -47,6 +66,22 @@
             maxlength="240"
             placeholder="Rua, número, bairro e cidade"
           />
+          <div th:replace="~{mapa :: seletor}"></div>
+          <label for="toleranciaMinutos"
+            >Intervalo entre reservas (minutos)</label
+          ><input
+            type="number"
+            th:field="*{toleranciaMinutos}"
+            id="toleranciaMinutos"
+            min="0"
+            max="1440"
+            required
+          />
+          <p class="texto-menor">
+            Padrão de 10 minutos. Zero permite horários consecutivos. Novas
+            disponibilidades usam esse valor; horários já publicados mantêm sua
+            configuração.
+          </p>
           <div class="dupla">
             <div>
               <label for="valorHora">Valor por hora (R$)</label

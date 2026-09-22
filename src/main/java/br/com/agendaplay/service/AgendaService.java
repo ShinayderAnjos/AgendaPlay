@@ -23,6 +23,8 @@ public class AgendaService {
     private final QuadraRepository quadras;
     private final QuadraService quadraService;
     private final Clock relogio;
+    private final PadraoService padroes;
+    private final NotificacaoService notificacoes;
     private final long antecedencia;
 
     public AgendaService(
@@ -30,11 +32,15 @@ public class AgendaService {
             QuadraRepository quadras,
             QuadraService quadraService,
             Clock relogio,
+            PadraoService padroes,
+            NotificacaoService notificacoes,
             @Value("${agendaplay.cancelamento-antecedencia-minutos:0}") long antecedencia) {
         this.agenda = agenda;
         this.quadras = quadras;
         this.quadraService = quadraService;
         this.relogio = relogio;
+        this.padroes = padroes;
+        this.notificacoes = notificacoes;
         this.antecedencia = antecedencia;
     }
 
@@ -86,11 +92,19 @@ public class AgendaService {
         if (conflito)
             throw new RegraNegocioException("Já existe uma disponibilidade nesse intervalo.");
         return agenda.cadastrarDisponibilidade(
-                idQuadra, form.getData(), form.getHoraInicio(), form.getHoraFim());
+                idQuadra,
+                form.getData(),
+                form.getHoraInicio(),
+                form.getHoraFim(),
+                form.getValorHora() == null ? quadra.valorHora() : form.getValorHora(),
+                form.getToleranciaMinutos() == null
+                        ? quadra.toleranciaMinutos()
+                        : form.getToleranciaMinutos());
     }
 
     public List<Disponibilidade> disponibilidades(long quadra, UsuarioAutenticado usuario) {
         quadraService.propria(quadra, usuario);
+        padroes.renovar(quadra);
         return agenda.disponibilidades(quadra);
     }
 
@@ -116,12 +130,14 @@ public class AgendaService {
         if (possuiReserva)
             throw new RegraNegocioException(
                     "Esta disponibilidade possui reservas confirmadas. Cancele-as antes de"
-                        + " inativar.");
+                            + " inativar.");
         agenda.inativarDisponibilidade(id, quadraId);
     }
 
     public List<HorarioLivre> horariosLivres(long quadraId) {
-        if (!quadraService.buscar(quadraId).situacao().equals("ATIVA")) return List.of();
+        var q = quadraService.buscar(quadraId);
+        if (!q.situacao().equals("ATIVA")) return List.of();
+        padroes.renovar(quadraId);
         var reservas =
                 agenda.reservasDaQuadra(quadraId).stream()
                         .filter(r -> r.situacao().equals("CONFIRMADA"))
@@ -129,32 +145,35 @@ public class AgendaService {
         var agora = LocalDateTime.now(relogio);
         List<HorarioLivre> livres = new ArrayList<>();
         for (var d : agenda.disponibilidades(quadraId)) {
-            if (!d.ativo() || !LocalDateTime.of(d.data(), d.horaFim()).isAfter(agora)) continue;
-            LocalTime inicio = d.horaInicio();
-            if (d.data().equals(agora.toLocalDate()) && !inicio.isAfter(agora.toLocalTime())) {
-                var proximoMinuto = agora.plusMinutes(1).withSecond(0).withNano(0);
-                if (!proximoMinuto.toLocalDate().equals(d.data())) continue;
-                inicio = proximoMinuto.toLocalTime();
-            }
-            if (!inicio.isBefore(d.horaFim())) continue;
-            List<HorarioLivre> partes =
-                    new ArrayList<>(List.of(new HorarioLivre(d.data(), inicio, d.horaFim())));
+            if (!d.ativo() || !d.data().atTime(d.horaFim()).isAfter(agora)) continue;
+            var inicio = d.data().atTime(d.horaInicio());
+            var fim = d.data().atTime(d.horaFim());
+            if (!inicio.isAfter(agora)) inicio = agora.plusMinutes(1).withSecond(0).withNano(0);
+            if (!inicio.isBefore(fim)) continue;
+            List<LocalDateTime[]> partes = new ArrayList<>();
+            partes.add(new LocalDateTime[] {inicio, fim});
             for (var r : reservas) {
-                if (!r.data().equals(d.data())) continue;
-                List<HorarioLivre> restantes = new ArrayList<>();
-                for (var p : partes) {
-                    if (!sobrepoe(p.horaInicio(), p.horaFim(), r.horaInicio(), r.horaFim())) {
-                        restantes.add(p);
+                var ri = r.data().atTime(r.horaInicio()).minusMinutes(d.toleranciaMinutos());
+                var rf = r.data().atTime(r.horaFim()).plusMinutes(r.toleranciaMinutos());
+                List<LocalDateTime[]> restantes = new ArrayList<>();
+                for (var a : partes) {
+                    if (!a[0].isBefore(rf) || !a[1].isAfter(ri)) {
+                        restantes.add(a);
                         continue;
                     }
-                    if (p.horaInicio().isBefore(r.horaInicio()))
-                        restantes.add(new HorarioLivre(p.data(), p.horaInicio(), r.horaInicio()));
-                    if (p.horaFim().isAfter(r.horaFim()))
-                        restantes.add(new HorarioLivre(p.data(), r.horaFim(), p.horaFim()));
+                    if (a[0].isBefore(ri)) restantes.add(new LocalDateTime[] {a[0], ri});
+                    if (a[1].isAfter(rf)) restantes.add(new LocalDateTime[] {rf, a[1]});
                 }
                 partes = restantes;
             }
-            livres.addAll(partes);
+            for (var a : partes)
+                livres.add(
+                        new HorarioLivre(
+                                d.data(),
+                                a[0].toLocalTime(),
+                                a[1].toLocalTime(),
+                                d.valorHora() == null ? q.valorHora() : d.valorHora(),
+                                d.toleranciaMinutos()));
         }
         return livres;
     }
@@ -168,19 +187,21 @@ public class AgendaService {
         if (!quadra.situacao().equals("ATIVA"))
             throw new RegraNegocioException("Esta quadra está inativa.");
         // Reconsulta sob bloqueio: a tela pode estar desatualizada quando o cliente confirma.
-        boolean disponivel =
+        var janela =
                 horariosLivres(quadraId).stream()
-                        .anyMatch(
+                        .filter(
                                 h ->
                                         h.data().equals(form.getData())
                                                 && !form.getHoraInicio().isBefore(h.horaInicio())
-                                                && !form.getHoraFim().isAfter(h.horaFim()));
-        if (!disponivel)
+                                                && !form.getHoraFim().isAfter(h.horaFim()))
+                        .findFirst();
+        if (janela.isEmpty())
             throw new RegraNegocioException(
                     "Este intervalo não está mais disponível. Escolha outro horário.");
         long minutos = Duration.between(form.getHoraInicio(), form.getHoraFim()).toMinutes();
         var valor =
-                quadra.valorHora()
+                janela.orElseThrow()
+                        .valorHora()
                         .multiply(BigDecimal.valueOf(minutos))
                         .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
         return agenda.reservar(
@@ -189,7 +210,8 @@ public class AgendaService {
                 form.getData(),
                 form.getHoraInicio(),
                 form.getHoraFim(),
-                valor);
+                valor,
+                janela.orElseThrow().toleranciaMinutos());
     }
 
     public List<Reserva> minhasReservas(UsuarioAutenticado usuario, Long quadra, LocalDate data) {
@@ -217,5 +239,6 @@ public class AgendaService {
                 .isAfter(LocalDateTime.now(relogio).plusMinutes(antecedencia)))
             throw new RegraNegocioException("O prazo de cancelamento desta reserva terminou.");
         agenda.cancelar(id);
+        notificacoes.cancelamento(reserva, quadra, usuario);
     }
 }

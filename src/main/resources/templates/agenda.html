@@ -1,0 +1,120 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="~{fragmentos :: head('Agenda do proprietário')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina">
+      <h1 class="titulo">Agenda do proprietário</h1>
+      <div th:replace="~{fragmentos :: avisos}"></div>
+      <form
+        method="get"
+        th:action="@{/proprietario/agenda}"
+        class="filtros painel"
+      >
+        <div>
+          <label for="estabelecimento">Estabelecimento</label
+          ><select id="estabelecimento" name="estabelecimento">
+            <option value="">Todos</option>
+            <option
+              th:each="e : ${estabelecimentos}"
+              th:value="${e.id}"
+              th:text="${e.nome}"
+              th:selected="${filtroEstabelecimento==e.id}"
+            ></option>
+          </select>
+        </div>
+        <div>
+          <label for="quadra">Quadra</label
+          ><select id="quadra" name="quadra">
+            <option value="">Todas</option>
+            <option
+              th:each="q : ${quadras}"
+              th:value="${q.id}"
+              th:text="${q.nome}"
+              th:selected="${filtroQuadra==q.id}"
+            ></option>
+          </select>
+        </div>
+        <div>
+          <label for="data">Data</label
+          ><input
+            id="data"
+            name="data"
+            type="date"
+            th:value="${dia}"
+            required
+          />
+        </div>
+        <div>
+          <label for="ordem">Ordenar reservas por</label
+          ><select id="ordem" name="ordem">
+            <option value="quadra" th:selected="${ordem=='quadra'}">
+              Quadra e horário
+            </option>
+            <option value="horario" th:selected="${ordem=='horario'}">
+              Horário
+            </option>
+          </select>
+        </div>
+        <button class="botao" type="submit">Consultar agenda</button>
+      </form>
+      <nav class="acoes" aria-label="Navegar pelos dias">
+        <a
+          th:href="@{/proprietario/agenda(data=${dia.minusDays(1)},estabelecimento=${filtroEstabelecimento},quadra=${filtroQuadra},ordem=${ordem})}"
+          >← Dia anterior</a
+        ><a
+          th:href="@{/proprietario/agenda(estabelecimento=${filtroEstabelecimento},quadra=${filtroQuadra},ordem=${ordem})}"
+          >Hoje</a
+        ><a
+          th:href="@{/proprietario/agenda(data=${dia.plusDays(1)},estabelecimento=${filtroEstabelecimento},quadra=${filtroQuadra},ordem=${ordem})}"
+          >Próximo dia →</a
+        >
+      </nav>
+      <h2 th:text="${#temporals.format(dia,'dd/MM/yyyy')}"></h2>
+      <h2>Reservas</h2>
+      <p th:if="${#lists.isEmpty(reservas)}">
+        Nenhuma reserva neste dia e filtros.
+      </p>
+      <article class="painel horario" th:each="r : ${reservas}">
+        <div>
+          <h3 th:text="${r.nomeQuadra}"></h3>
+          <p
+            th:text="${r.horaInicio}+' – '+${r.horaFim}+' · '+${r.nomeCliente}"
+          ></p>
+          <span class="badge" th:text="${r.situacao}"></span>
+        </div>
+        <form
+          class="cancelar-reserva"
+          th:if="${r.situacao=='CONFIRMADA'}"
+          th:action="@{/reservas/{id}/cancelar(id=${r.id})}"
+          method="post"
+        >
+          <button class="botao secundario pequeno" type="submit">
+            Cancelar reserva
+          </button>
+        </form>
+      </article>
+      <h2>Horários livres por quadra</h2>
+      <div class="grade">
+        <section class="painel" th:each="item : ${livres}">
+          <h3 th:text="${item.key.nome}"></h3>
+          <p th:if="${#lists.isEmpty(item.value)}">
+            Sem horários livres neste dia.
+          </p>
+          <p
+            th:each="h : ${item.value}"
+            th:text="${h.horaInicio}+' – '+${h.horaFim}+' · R$ '+${h.valorHora}+'/hora'"
+          ></p>
+          <a th:href="@{/proprietario/quadras/{id}/agenda(id=${item.key.id})}"
+            >Gerenciar horários</a
+          >
+        </section>
+      </div>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

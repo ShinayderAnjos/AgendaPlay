@@ -1,0 +1,50 @@
+<!doctype html>
+<html
+  lang="pt-BR"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="~{fragmentos :: head('Estabelecimentos')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina">
+      <h1 class="titulo">Estabelecimentos</h1>
+      <div th:replace="~{fragmentos :: avisos}"></div>
+      <p>Explore os espaços e suas quadras.</p>
+      <div class="acoes">
+        <a
+          th:if="${dono}"
+          class="botao"
+          th:href="@{/proprietario/estabelecimentos/novo}"
+          >+ Cadastrar estabelecimento</a
+        ><a th:href="@{/painel}">Ver por quadras</a>
+      </div>
+      <p class="vazio" th:if="${#lists.isEmpty(estabelecimentos)}">
+        Nenhum estabelecimento cadastrado.
+      </p>
+      <div class="grade">
+        <article class="card" th:each="e : ${estabelecimentos}">
+          <div class="card-corpo">
+            <h2 th:text="${e.nome}"></h2>
+            <p th:text="${e.localizacao}"></p>
+            <a
+              th:if="${!dono}"
+              class="botao"
+              th:href="@{/cliente/quadras(estabelecimento=${e.id})}"
+              >Ver quadras</a
+            >
+            <div class="acoes" th:if="${dono}">
+              <a
+                th:href="@{/proprietario/estabelecimentos/{id}/editar(id=${e.id})}"
+                >Editar</a
+              ><a th:href="@{/proprietario/agenda(estabelecimento=${e.id})}"
+                >Abrir agenda</a
+              >
+            </div>
+          </div>
+        </article>
+      </div>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

@@ -24,6 +24,22 @@
         </p>
       </div>
       <div th:replace="~{fragmentos :: avisos}"></div>
+      <div class="acoes" th:if="${dono}">
+        <a
+          class="botao"
+          th:href="@{/proprietario/quadras/{id}/padroes(id=${quadra.id})}"
+          >Padrões semanais</a
+        ><a th:href="@{/proprietario/agenda(quadra=${quadra.id})}"
+          >Agenda da quadra</a
+        >
+      </div>
+      <a
+        th:if="${quadra.latitude!=null}"
+        target="_blank"
+        rel="noopener noreferrer"
+        th:href="@{https://www.google.com/maps/search/(api=1,query=${quadra.latitude+','+quadra.longitude})}"
+        >Ver localização no Google Maps</a
+      >
       <div class="agenda-layout">
         <section class="painel">
           <h2
@@ -47,6 +63,10 @@
                   <span th:text="${d.horaFim}"></span>
                 </p>
                 <small th:text="${d.ativo ? 'Ativa' : 'Inativa'}"></small>
+                <p
+                  class="texto-menor"
+                  th:text="'R$ '+${d.valorHora==null ? quadra.valorHora : d.valorHora}+' / hora · intervalo: '+${d.toleranciaMinutos}+' min'"
+                ></p>
               </div>
               <form
                 th:if="${d.ativo}"
@@ -68,13 +88,21 @@
                 ></strong>
                 <p>
                   <span th:text="${h.horaInicio}"></span> –
-                  <span th:text="${h.horaFim}"></span>
+                  <span th:text="${h.horaFim}"></span
+                  ><small
+                    th:text="' · R$ '+${h.valorHora}+' / hora · intervalo: '+${h.toleranciaMinutos}+' min'"
+                  ></small>
                 </p>
               </div>
               <button
                 type="button"
+<<<<<<< HEAD
                 class="botao escolher-horario"
                 th:attr="data-data=${h.data},data-inicio=${h.horaInicio},data-fim=${h.horaFim}"
+=======
+                class="botao secundario pequeno escolher-horario"
+                th:attr="data-data=${h.data},data-inicio=${h.horaInicio},data-fim=${h.horaFim},data-valor=${h.valorHora}"
+>>>>>>> 3814952 (feat: implementa funcionalidades da Sprint 3)
               >
                 Escolher
               </button>
@@ -120,6 +148,31 @@
                   step="60"
                 />
               </div>
+            </div>
+            <div th:if="${dono}">
+              <label for="valorHora">Valor por hora deste horário (R$)</label
+              ><input
+                id="valorHora"
+                th:field="*{valorHora}"
+                type="number"
+                min="0"
+                max="99999999.99"
+                step="0.01"
+                th:placeholder="${quadra.valorHora}"
+              /><label for="toleranciaMinutos"
+                >Intervalo após a reserva (minutos)</label
+              ><input
+                id="toleranciaMinutos"
+                th:field="*{toleranciaMinutos}"
+                type="number"
+                min="0"
+                max="1440"
+                th:placeholder="${quadra.toleranciaMinutos}"
+              />
+              <p class="texto-menor">
+                Deixe em branco para usar os valores da quadra. O intervalo é
+                respeitado também em reservas parciais.
+              </p>
             </div>
             <p
               th:if="${!dono}"

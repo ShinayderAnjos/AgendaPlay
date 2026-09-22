@@ -27,6 +27,70 @@
         >
       </div>
       <div th:replace="~{fragmentos :: avisos}"></div>
+      <form
+        th:if="${!dono}"
+        class="filtros painel"
+        method="get"
+        th:action="@{/cliente/quadras}"
+      >
+        <div>
+          <label for="modalidade">Modalidade</label
+          ><input id="modalidade" name="modalidade" th:value="${modalidade}" />
+        </div>
+        <div>
+          <label for="localizacao">Localização</label
+          ><input
+            id="localizacao"
+            name="localizacao"
+            th:value="${localizacao}"
+          />
+        </div>
+        <div>
+          <label for="estabelecimento">Estabelecimento</label
+          ><select id="estabelecimento" name="estabelecimento">
+            <option value="">Todos</option>
+            <option
+              th:each="e : ${estabelecimentos}"
+              th:value="${e.id}"
+              th:text="${e.nome}"
+              th:selected="${filtroEstabelecimento==e.id}"
+            ></option>
+          </select>
+        </div>
+        <div>
+          <label for="valorMaximo">Preço máximo por hora (R$)</label
+          ><input
+            id="valorMaximo"
+            name="valorMaximo"
+            type="number"
+            min="0"
+            step="0.01"
+            th:value="${valorMaximo}"
+          />
+        </div>
+        <div>
+          <label for="data">Data</label
+          ><input id="data" name="data" type="date" th:value="${data}" />
+        </div>
+        <div>
+          <label for="inicio">Início</label
+          ><input id="inicio" name="inicio" type="time" th:value="${inicio}" />
+        </div>
+        <div>
+          <label for="fim">Fim</label
+          ><input id="fim" name="fim" type="time" th:value="${fim}" />
+        </div>
+        <label class="check"
+          ><input
+            type="checkbox"
+            name="disponiveis"
+            value="true"
+            th:checked="${disponiveis}"
+          />Somente com horários livres</label
+        ><button class="botao" type="submit">Filtrar</button
+        ><a th:href="@{/cliente/quadras}">Limpar</a
+        ><a th:href="@{/cliente/estabelecimentos}">Ver por estabelecimento</a>
+      </form>
       <div th:if="${#lists.isEmpty(quadras)}" class="vazio">
         <h2
           th:text="${dono ? 'Nenhuma quadra cadastrada' : 'Ainda não há quadras disponíveis'}"
@@ -40,14 +104,18 @@
           <div class="quadra-dados">
             <span class="situacao" th:text="${q.situacao}"></span>
             <h2 th:text="${q.nome}"></h2>
+<<<<<<< HEAD
             <p>Modalidade: <span th:text="${q.modalidade}"></span></p>
+=======
+            <p th:text="${nomesEstabelecimentos[q.idEstabelecimento]}"></p>
+>>>>>>> 3814952 (feat: implementa funcionalidades da Sprint 3)
             <p th:text="${q.localizacao}"></p>
             <p class="preco">
               R$
               <strong
                 th:text="${#numbers.formatDecimal(q.valorHora,1,'POINT',2,'COMMA')}"
               ></strong
-              ><small> / hora</small>
+              ><small> / hora base · consulte os valores dos horários</small>
             </p>
             <div class="acoes">
               <a

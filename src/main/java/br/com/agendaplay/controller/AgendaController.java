@@ -23,8 +23,16 @@ import java.time.LocalDate;
 public class AgendaController {
     private final AgendaService agenda;
     private final QuadraService quadras;
+    private final EstabelecimentoService estabelecimentos;
+    private final java.time.Clock clock;
 
-    public AgendaController(AgendaService agenda, QuadraService quadras) {
+    public AgendaController(
+            AgendaService agenda,
+            QuadraService quadras,
+            EstabelecimentoService estabelecimentos,
+            java.time.Clock clock) {
+        this.estabelecimentos = estabelecimentos;
+        this.clock = clock;
         this.agenda = agenda;
         this.quadras = quadras;
     }
@@ -73,7 +81,7 @@ public class AgendaController {
                 erros.reject(
                         "conflito",
                         "Este horário acabou de ser ocupado ou já está cadastrado. Escolha outro"
-                            + " intervalo.");
+                                + " intervalo.");
             }
         }
         carregar(model, id, usuario, dono);
@@ -108,6 +116,56 @@ public class AgendaController {
         model.addAttribute("filtroQuadra", quadra);
         model.addAttribute("filtroData", data);
         return "reservas";
+    }
+
+    @GetMapping("/proprietario/agenda")
+    String agenda(
+            @RequestParam(required = false) Long estabelecimento,
+            @RequestParam(required = false) Long quadra,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate data,
+            @RequestParam(defaultValue = "quadra") String ordem,
+            @AuthenticationPrincipal UsuarioAutenticado usuario,
+            Model model) {
+        var dia = data == null ? LocalDate.now(clock) : data;
+        var lista =
+                quadras.minhas(usuario.getId()).stream()
+                        .filter(
+                                q ->
+                                        estabelecimento == null
+                                                || q.idEstabelecimento() == estabelecimento)
+                        .filter(q -> quadra == null || q.id() == quadra)
+                        .toList();
+        var ids = lista.stream().map(q -> q.id()).collect(java.util.stream.Collectors.toSet());
+        var reservas =
+                agenda.minhasReservas(usuario, quadra, dia).stream()
+                        .filter(r -> ids.contains(r.idQuadra()));
+        java.util.Comparator<br.com.agendaplay.model.Reserva> c =
+                java.util.Comparator.comparing(r -> r.horaInicio());
+        if (!ordem.equals("horario"))
+            c =
+                    java.util.Comparator.comparing(br.com.agendaplay.model.Reserva::nomeQuadra)
+                            .thenComparingLong(br.com.agendaplay.model.Reserva::idQuadra)
+                            .thenComparing(c);
+        model.addAttribute("reservas", reservas.sorted(c).toList());
+        model.addAttribute("quadras", quadras.minhas(usuario.getId()));
+        var livres =
+                new java.util.LinkedHashMap<
+                        br.com.agendaplay.model.Quadra,
+                        java.util.List<br.com.agendaplay.model.HorarioLivre>>();
+        for (var q : lista)
+            livres.put(
+                    q,
+                    agenda.horariosLivres(q.id()).stream()
+                            .filter(h -> h.data().equals(dia))
+                            .toList());
+        model.addAttribute("livres", livres);
+        model.addAttribute("estabelecimentos", estabelecimentos.listar(usuario.getId()));
+        model.addAttribute("dia", dia);
+        model.addAttribute("filtroEstabelecimento", estabelecimento);
+        model.addAttribute("filtroQuadra", quadra);
+        model.addAttribute("ordem", ordem);
+        return "agenda";
     }
 
     @PostMapping("/reservas/{id}/cancelar")

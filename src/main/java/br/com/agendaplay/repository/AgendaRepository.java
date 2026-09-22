@@ -25,7 +25,7 @@ public class AgendaRepository {
     public List<Disponibilidade> disponibilidades(long quadra) {
         return jdbc.sql(
                         "SELECT * FROM disponibilidade WHERE id_quadra=? ORDER BY data,"
-                            + " hora_inicio")
+                                + " hora_inicio")
                 .param(quadra)
                 .query(Disponibilidade.class)
                 .list();
@@ -35,8 +35,46 @@ public class AgendaRepository {
             long quadra, LocalDate data, LocalTime inicio, LocalTime fim) {
         return jdbc.sql(
                         "INSERT INTO disponibilidade(id_quadra,data,hora_inicio,hora_fim) VALUES"
-                            + " (?,?,?,?) RETURNING id")
+                                + " (?,?,?,?) RETURNING id")
                 .params(quadra, data, inicio, fim)
+                .query(Long.class)
+                .single();
+    }
+
+    public long cadastrarDisponibilidade(
+            long quadra,
+            LocalDate data,
+            LocalTime inicio,
+            LocalTime fim,
+            BigDecimal valor,
+            int tolerancia) {
+        return jdbc.sql(
+                        "INSERT INTO"
+                            + " disponibilidade(id_quadra,data,hora_inicio,hora_fim,valor_hora,tolerancia_minutos)"
+                            + " VALUES(:q,:d,:i,:f,:v,:t) RETURNING id")
+                .param("q", quadra)
+                .param("d", data)
+                .param("i", inicio)
+                .param("f", fim)
+                .param("v", valor)
+                .param("t", tolerancia)
+                .query(Long.class)
+                .single();
+    }
+
+    public long reservar(
+            long cliente,
+            long quadra,
+            LocalDate data,
+            LocalTime inicio,
+            LocalTime fim,
+            BigDecimal valor,
+            int tolerancia) {
+        return jdbc.sql(
+                        "INSERT INTO"
+                            + " reserva(id_cliente,id_quadra,data,hora_inicio,hora_fim,valor_total,tolerancia_minutos)"
+                            + " VALUES(?,?,?,?,?,?,?) RETURNING id")
+                .params(cliente, quadra, data, inicio, fim, valor, tolerancia)
                 .query(Long.class)
                 .single();
     }

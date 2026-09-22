@@ -79,7 +79,8 @@ public class ContaController {
             } catch (DataIntegrityViolationException e) {
                 erros.reject(
                         "duplicado",
-                        "E-mail ou CPF já cadastrado. Confira os dados ou entre na sua conta.");
+                        "E-mail ou CPF/CNPJ já cadastrado. Confira os dados ou entre na sua"
+                            + " conta.");
             }
         }
         form.setSenha(null);

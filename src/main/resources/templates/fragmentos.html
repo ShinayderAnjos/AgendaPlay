@@ -9,12 +9,31 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title th:text="${titulo} + ' | AgendaPlay'">AgendaPlay</title>
     <link rel="stylesheet" th:href="@{/css/app.css}" />
+    <link rel="stylesheet" th:href="@{/vendor/leaflet/leaflet.css}" />
+    <link rel="stylesheet" th:href="@{/css/sprint3.css}" />
+    <script defer th:src="@{/vendor/leaflet/leaflet.js}"></script>
     <script defer th:src="@{/js/app.js}"></script>
+    <script defer th:src="@{/js/sprint3.js}"></script>
   </head>
   <body>
     <header th:fragment="header" class="cabecalho">
       <a class="marca" th:href="@{/}">AgendaPlay</a>
       <nav aria-label="Menu principal">
+        <a
+          sec:authorize="hasRole('PROPRIETARIO')"
+          th:href="@{/proprietario/estabelecimentos}"
+          >Estabelecimentos</a
+        >
+        <a
+          sec:authorize="hasRole('PROPRIETARIO')"
+          th:href="@{/proprietario/agenda}"
+          >Agenda</a
+        >
+        <a
+          sec:authorize="hasRole('CLIENTE')"
+          th:href="@{/cliente/estabelecimentos}"
+          >Estabelecimentos</a
+        >
         <a sec:authorize="isAuthenticated()" th:href="@{/painel}">Quadras</a
         ><a sec:authorize="isAuthenticated()" th:href="@{/reservas}">Reservas</a
         ><a sec:authorize="isAuthenticated()" th:href="@{/conta}"
@@ -37,6 +56,22 @@
       </nav>
     </header>
     <div th:fragment="avisos">
+      <section
+        th:if="${notificacoes != null and !#lists.isEmpty(notificacoes)}"
+        class="aviso"
+        aria-label="Cancelamentos"
+        role="status"
+      >
+        <h2>Cancelamentos recentes</h2>
+        <article th:each="n : ${notificacoes}">
+          <p th:text="${n.mensagem}"></p>
+          <form th:action="@{/notificacoes/{id}/ler(id=${n.id})}" method="post">
+            <button class="botao secundario pequeno" type="submit">
+              Marcar como lida
+            </button>
+          </form>
+        </article>
+      </section>
       <div
         th:if="${sucesso}"
         class="aviso sucesso"
