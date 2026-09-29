@@ -1,0 +1,31 @@
+{
+  "resultado": "aprovado",
+  "data": "2026-09-29T00:24:54.228Z",
+  "errosJavaScript": [],
+  "dialogosNativos": [],
+  "fluxos": [
+    "requisitos um por linha",
+    "senha preservada em CPF inválido",
+    "senhas diferentes preservadas",
+    "mostrar/ocultar senha",
+    "cadastro e login",
+    "login inválido preserva senha e permite corrigir e-mail",
+    "slider automático e pausa",
+    "Escape fecha confirmação e restaura foco",
+    "filtro de calendário seleciona dia disponível",
+    "erro do servidor na redefinição preserva senhas",
+    "upload e troca de capa",
+    "galeria e slider",
+    "cabeçalho fixo",
+    "mobile 390px sem overflow",
+    "confirmação e desistência em modal",
+    "baixa pelo proprietário",
+    "reserva criada pelo cliente aparece ao trocar para o proprietário sem filtro de data",
+    "baixa bloqueada antes do início com explicação visível",
+    "baixa durante o horário libera avaliação ao retornar à conta cliente",
+    "avaliação pelo cliente",
+    "e-mail capturado em SMTP local",
+    "redefinição e login com senha nova",
+    "link de uso único"
+  ]
+}

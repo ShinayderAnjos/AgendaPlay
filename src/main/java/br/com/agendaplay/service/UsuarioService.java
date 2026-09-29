@@ -24,15 +24,13 @@ public class UsuarioService {
 
     @Transactional
     public long cadastrar(CadastroForm form, Perfil perfil) {
-        if (!form.getSenha().equals(form.getConfirmacaoSenha())) {
-            throw new RegraNegocioException("A confirmação da senha não confere.");
-        }
-        if (form.getSenha().getBytes(StandardCharsets.UTF_8).length > 72) {
-            throw new RegraNegocioException("A senha é muito longa. Use menos caracteres.");
-        }
-        String cpf = form.getCpf() == null ? "" : form.getCpf().replaceAll("[^0-9]", "");
-        if (perfil == Perfil.CLIENTE && cpf.isBlank())
-            throw new RegraNegocioException("Informe seu CPF.");
+        validarSenha(form.getSenha(), form.getConfirmacaoSenha());
+        String cpf = Documento.normalizar(form.getCpf());
+        if (!Documento.valido(cpf, perfil == Perfil.PROPRIETARIO))
+            throw new RegraNegocioException(
+                    perfil == Perfil.CLIENTE
+                            ? "Informe um CPF válido."
+                            : "Informe um CPF ou CNPJ válido (também aceitamos letras).");
         return usuarios.cadastrar(
                 form.getNome().trim(),
                 form.getEmail().trim().toLowerCase(Locale.ROOT),
@@ -40,5 +38,20 @@ public class UsuarioService {
                 form.getTelefone(),
                 senhas.encode(form.getSenha()),
                 perfil);
+    }
+
+    public static void validarSenha(String senha, String confirmacao) {
+        if (senha == null
+                || senha.length() < 8
+                || senha.length() > 60
+                || !senha.matches("(?s)(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9\\s]).+"))
+            throw new RegraNegocioException(
+                    "Use de 8 a 60 caracteres, com maiúscula, minúscula, número e símbolo.");
+        if (!senha.equals(confirmacao)) {
+            throw new RegraNegocioException("A confirmação da senha não confere.");
+        }
+        if (senha.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new RegraNegocioException("A senha é muito longa. Use menos caracteres.");
+        }
     }
 }

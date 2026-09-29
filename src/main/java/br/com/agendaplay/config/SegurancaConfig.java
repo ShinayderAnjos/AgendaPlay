@@ -36,7 +36,12 @@ public class SegurancaConfig {
                                                 "/",
                                                 "/login",
                                                 "/cadastro/**",
+                                                "/recuperar-senha",
+                                                "/redefinir-senha",
+                                                "/imagens/**",
+                                                "/fotos/**",
                                                 "/css/**",
+                                                "/vendor/**",
                                                 "/js/**",
                                                 "/error")
                                         .permitAll()
@@ -68,8 +73,10 @@ public class SegurancaConfig {
                                                 csp.policyDirectives(
                                                         "default-src 'self'; style-src 'self';"
                                                             + " script-src 'self'; img-src 'self'"
-                                                            + " data:; form-action 'self';"
-                                                            + " frame-ancestors 'none'")))
+                                                            + " data:"
+                                                            + " https://tile.openstreetmap.org;"
+                                                            + " form-action 'self'; frame-ancestors"
+                                                            + " 'none'")))
                 .build();
     }
 }

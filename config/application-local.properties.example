@@ -2,3 +2,13 @@
 spring.datasource.url=jdbc:postgresql://localhost:5432/AgendaPlay
 spring.datasource.username=postgres
 spring.datasource.password=123456
+
+# Recuperação de senha: preencha os dados fornecidos pelo serviço de e-mail.
+# spring.mail.host=smtp.seu-provedor
+# spring.mail.port=587
+# spring.mail.username=seu-usuario
+# spring.mail.password=sua-senha-de-aplicativo
+# spring.mail.properties.mail.smtp.auth=true
+# spring.mail.properties.mail.smtp.starttls.enable=true
+# agendaplay.email-remetente=contato@seu-dominio
+# agendaplay.url-publica=http://localhost:8080

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import java.time.Clock;
 import java.time.ZoneId;
 
+@org.springframework.scheduling.annotation.EnableScheduling
 @SpringBootApplication
 public class AgendaPlayApplication {
     public static void main(String[] args) {

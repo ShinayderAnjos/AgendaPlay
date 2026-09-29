@@ -14,6 +14,7 @@
         th:text="${dono ? 'Agenda das minhas quadras' : 'Minhas reservas'}"
       ></h1>
       <p>Confira os próximos jogos e o histórico de agendamentos.</p>
+      <p th:if="${dono}">As reservas dos clientes aparecem na conta do proprietário da quadra. Dê baixa após confirmar o comparecimento, a partir do início do horário reservado.</p>
       <div th:replace="~{fragmentos :: avisos}"></div>
       <form
         th:if="${dono}"
@@ -70,6 +71,7 @@
               th:classappend="${r.situacao=='CANCELADA' ? 'cancelada' : ''}"
               th:text="${r.situacao}"
             ></span>
+            <p th:if="${!dono and r.situacao=='CONFIRMADA'}" class="texto-menor">Avaliação aguardando a baixa pelo proprietário da quadra.</p>
           </div>
           <form
             th:if="${r.situacao=='CONFIRMADA'}"
@@ -81,6 +83,50 @@
               Cancelar reserva
             </button>
           </form>
+          <form
+            th:if="${dono and r.situacao=='CONFIRMADA'}"
+            th:action="@{/proprietario/reservas/{id}/concluir(id=${r.id})}"
+            method="post"
+            data-confirmar="Confirmar que o cliente compareceu e dar baixa nesta reserva? A avaliação será liberada e a reserva não poderá mais ser cancelada."
+          >
+            <button class="botao pequeno" type="submit" th:disabled="${r.data.atTime(r.horaInicio).isAfter(agora)}">
+              Dar baixa
+            </button>
+            <p class="texto-menor" th:if="${r.data.atTime(r.horaInicio).isAfter(agora)}">Disponível a partir do início da reserva, após o comparecimento.</p>
+          </form>
+          <section
+            th:if="${!dono and r.situacao=='CONCLUIDA'}"
+            class="avaliar-reserva"
+          >
+            <p
+              th:if="${avaliacoes[r.id] != null}"
+              th:text="'Sua avaliação: '+${avaliacoes[r.id].nota}+' de 5 estrelas'"
+            ></p>
+            <form
+              th:unless="${avaliacoes[r.id] != null}"
+              th:action="@{/cliente/reservas/{id}/avaliar(id=${r.id})}"
+              method="post"
+            >
+              <label th:for="'nota-'+${r.id}"
+                >Como foi jogar nesta quadra?</label
+              ><select th:id="'nota-'+${r.id}" name="nota" required>
+                <option value="">Selecione uma nota</option>
+                <option value="5">5 — Excelente</option>
+                <option value="4">4 — Muito boa</option>
+                <option value="3">3 — Boa</option>
+                <option value="2">2 — Regular</option>
+                <option value="1">1 — Ruim</option></select
+              ><label th:for="'comentario-'+${r.id}"
+                >Comentário (opcional)</label
+              ><textarea
+                th:id="'comentario-'+${r.id}"
+                name="comentario"
+                maxlength="1000"
+                rows="3"
+              ></textarea
+              ><button class="botao" type="submit">Enviar avaliação</button>
+            </form>
+          </section>
         </article>
       </section>
       <p class="texto-menor">

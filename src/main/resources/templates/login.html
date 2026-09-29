@@ -17,6 +17,8 @@
       <section class="painel">
         <p class="etiqueta">SUA CONTA</p>
         <h2>Entrar no AgendaPlay</h2>
+        <div th:replace="~{fragmentos :: avisos}"></div>
+        <div th:if="${param.redefinida}" role="status" class="aviso sucesso">Senha redefinida. Entre com sua nova senha.</div>
         <div th:if="${param.erro}" role="alert" class="aviso erro">
           E-mail ou senha inválidos.
         </div>
@@ -26,7 +28,7 @@
         <div th:if="${param.saiu}" role="status" class="aviso sucesso">
           Você saiu com segurança.
         </div>
-        <form th:action="@{/login}" method="post">
+        <form th:action="@{/login}" method="post" data-preservar-senhas>
           <label for="email">E-mail</label
           ><input
             id="email"
@@ -44,6 +46,7 @@
             autocomplete="current-password"
           /><button class="botao largo" type="submit">Entrar</button>
         </form>
+        <p><a th:href="@{/recuperar-senha}">Esqueci minha senha</a></p>
         <p class="texto-menor">
           Ainda não tem conta?
           <a th:href="@{/cadastro/cliente}">Cadastre-se como cliente</a>

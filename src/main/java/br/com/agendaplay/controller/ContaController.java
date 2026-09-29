@@ -20,6 +20,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class ContaController {
+    @org.springframework.beans.factory.annotation.Autowired
+    private br.com.agendaplay.service.FotoService fotos;
+
     private final UsuarioService service;
     private final UsuarioRepository usuarios;
 
@@ -29,7 +32,8 @@ public class ContaController {
     }
 
     @GetMapping("/")
-    String inicio() {
+    String inicio(Model model) {
+        model.addAttribute("destaques", fotos.destaques());
         return "inicio";
     }
 
@@ -79,7 +83,8 @@ public class ContaController {
             } catch (DataIntegrityViolationException e) {
                 erros.reject(
                         "duplicado",
-                        "E-mail ou CPF já cadastrado. Confira os dados ou entre na sua conta.");
+                        "E-mail ou CPF/CNPJ já cadastrado. Confira os dados ou entre na sua"
+                                + " conta.");
             }
         }
         form.setSenha(null);

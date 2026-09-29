@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: br.com.agendaplay.AgendaPlayIntegrationTest
+-------------------------------------------------------------------------------
+Tests run: 60, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 69.23 s -- in br.com.agendaplay.AgendaPlayIntegrationTest

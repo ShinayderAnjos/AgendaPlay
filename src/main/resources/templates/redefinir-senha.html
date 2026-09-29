@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragmentos :: head('Redefinir senha')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina">
+      <h1 class="titulo">Redefinir senha</h1>
+      <div th:replace="~{fragmentos :: avisos}"></div>
+      <section class="painel recuperacao">
+        <form
+          th:if="${valido}"
+          data-preservar-senhas
+          th:action="@{/redefinir-senha}"
+          method="post"
+        >
+          <input type="hidden" name="token" th:value="${token}" /><label
+            for="senha"
+            >Nova senha</label
+          ><input
+            id="senha"
+            name="senha"
+            type="password"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="60"
+            required
+          />
+          <ul id="forca-senha" class="requisitos-senha" aria-live="polite"></ul>
+          <label for="confirmacaoSenha">Confirme a senha</label
+          ><input
+            id="confirmacaoSenha"
+            name="confirmacaoSenha"
+            type="password"
+            autocomplete="new-password"
+            maxlength="60"
+            required
+          /><button class="botao" type="submit">Salvar nova senha</button>
+        </form>
+        <p th:unless="${valido}" class="aviso erro">
+          Link inválido, expirado ou já utilizado.
+        </p>
+        <p><a th:href="@{/recuperar-senha}">Solicitar novo link</a></p>
+      </section>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

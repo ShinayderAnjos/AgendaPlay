@@ -16,8 +16,10 @@ import java.util.List;
 @Service
 public class QuadraService {
     private final QuadraRepository quadras;
+    private final EstabelecimentoService estabelecimentos;
 
-    public QuadraService(QuadraRepository quadras) {
+    public QuadraService(QuadraRepository quadras, EstabelecimentoService estabelecimentos) {
+        this.estabelecimentos = estabelecimentos;
         this.quadras = quadras;
     }
 
@@ -51,6 +53,10 @@ public class QuadraService {
     public long salvar(Long id, QuadraForm form, UsuarioAutenticado usuario) {
         if (usuario.getPerfil() != Perfil.PROPRIETARIO)
             throw new AccessDeniedException("Acesso exclusivo de proprietários.");
+        if (form.getIdEstabelecimento() == null)
+            throw new br.com.agendaplay.exception.RegraNegocioException(
+                    "Selecione um estabelecimento.");
+        estabelecimentos.propria(form.getIdEstabelecimento(), usuario);
         if (id != null) {
             var existente =
                     quadras.bloquear(id)
@@ -65,6 +71,10 @@ public class QuadraService {
                         form.getModalidade().trim(),
                         form.getLocalizacao().trim(),
                         form.getValorHora(),
-                        form.getSituacao()));
+                        form.getSituacao(),
+                        form.getIdEstabelecimento(),
+                        form.getToleranciaMinutos(),
+                        form.getLatitude(),
+                        form.getLongitude()));
     }
 }

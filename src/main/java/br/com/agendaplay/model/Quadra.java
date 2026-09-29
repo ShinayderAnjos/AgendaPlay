@@ -9,4 +9,8 @@ public record Quadra(
         String modalidade,
         String localizacao,
         BigDecimal valorHora,
-        String situacao) {}
+        String situacao,
+        long idEstabelecimento,
+        int toleranciaMinutos,
+        BigDecimal latitude,
+        BigDecimal longitude) {}

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragmentos :: head('Fotos da quadra')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina">
+      <h1 class="titulo">Fotos da quadra</h1>
+      <div th:replace="~{fragmentos :: avisos}"></div>
+      <h2 th:text="${quadra.nome}"></h2>
+      <p>
+        Até 8 fotos JPEG ou PNG, de até 5 MB cada. A capa aparece na listagem e
+        primeiro na galeria.
+      </p>
+      <form
+        class="painel"
+        th:action="@{/proprietario/quadras/{id}/fotos(id=${quadra.id})}"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <label for="arquivos">Adicionar fotos</label
+        ><input
+          id="arquivos"
+          name="arquivos"
+          type="file"
+          accept="image/png,image/jpeg"
+          multiple
+          required
+        /><button class="botao" type="submit">Salvar fotos</button>
+      </form>
+      <div class="grade">
+        <article class="painel" th:each="f : ${fotos}">
+          <img
+            class="foto-quadra"
+            th:src="@{/fotos/{id}(id=${f.id})}"
+            th:alt="${quadra.nome}"
+          />
+          <p th:if="${f.capa}" class="badge">Foto de capa</p>
+          <form
+            th:unless="${f.capa}"
+            th:action="@{/proprietario/quadras/{id}/fotos/{foto}/capa(id=${quadra.id},foto=${f.id})}"
+            method="post"
+          >
+            <button class="botao secundario" type="submit">
+              Usar como capa
+            </button>
+          </form>
+          <form
+            data-confirmar="Excluir esta foto da quadra?"
+            th:action="@{/proprietario/quadras/{id}/fotos/{foto}/excluir(id=${quadra.id},foto=${f.id})}"
+            method="post"
+          >
+            <button class="botao secundario" type="submit">Excluir foto</button>
+          </form>
+        </article>
+      </div>
+      <p><a th:href="@{/proprietario/quadras}">Voltar às quadras</a></p>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

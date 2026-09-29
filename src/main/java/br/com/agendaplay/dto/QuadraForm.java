@@ -6,6 +6,58 @@ import java.math.BigDecimal;
 import java.time.*;
 
 public class QuadraForm {
+    @NotNull(message = "Selecione um estabelecimento.")
+    private Long idEstabelecimento;
+
+    @Min(0)
+    @Max(1440)
+    private int toleranciaMinutos = 10;
+
+    @DecimalMin("-90")
+    @DecimalMax("90")
+    private BigDecimal latitude;
+
+    @DecimalMin("-180")
+    @DecimalMax("180")
+    private BigDecimal longitude;
+
+    @AssertTrue(message = "Informe latitude e longitude juntas.")
+    public boolean isCoordenadasValidas() {
+        return (latitude == null) == (longitude == null);
+    }
+
+    public Long getIdEstabelecimento() {
+        return idEstabelecimento;
+    }
+
+    public void setIdEstabelecimento(Long v) {
+        idEstabelecimento = v;
+    }
+
+    public int getToleranciaMinutos() {
+        return toleranciaMinutos;
+    }
+
+    public void setToleranciaMinutos(int v) {
+        toleranciaMinutos = v;
+    }
+
+    public BigDecimal getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(BigDecimal v) {
+        latitude = v;
+    }
+
+    public BigDecimal getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(BigDecimal v) {
+        longitude = v;
+    }
+
     @NotBlank(message = "Informe o nome da quadra.")
     @Size(max = 120)
     private String nome;

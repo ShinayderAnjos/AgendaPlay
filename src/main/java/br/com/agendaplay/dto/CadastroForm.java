@@ -14,7 +14,8 @@ public class CadastroForm {
     @Size(max = 160)
     private String email;
 
-    @org.hibernate.validator.constraints.br.CPF(message = "Informe um CPF válido.")
+    @NotBlank(message = "Informe CPF ou CNPJ.")
+    @Size(max = 18)
     private String cpf;
 
     @Size(max = 20, message = "O telefone deve ter no máximo 20 caracteres.")
@@ -22,6 +23,9 @@ public class CadastroForm {
 
     @NotBlank(message = "Informe uma senha.")
     @Size(min = 8, max = 60, message = "A senha deve ter entre 8 e 60 caracteres.")
+    @Pattern(
+            regexp = "(?s)(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9\\s]).+",
+            message = "Use maiúscula, minúscula, número e símbolo na senha.")
     private String senha;
 
     @NotBlank(message = "Confirme sua senha.")

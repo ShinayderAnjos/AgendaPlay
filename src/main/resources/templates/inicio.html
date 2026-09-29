@@ -7,6 +7,7 @@
   <head th:replace="~{fragmentos :: head('Encontre seu próximo jogo')}"></head>
   <body>
     <header th:replace="~{fragmentos :: header}"></header>
+    <div class="pagina" th:replace="~{fragmentos :: avisos}"></div>
     <main class="pagina">
       <section class="hero">
         <div>
@@ -27,7 +28,11 @@
             <span class="ponto"></span>Agenda organizada. Tempo para jogar.
           </div>
         </div>
-        <div class="ilustracao" aria-label="Ilustração de uma quadra esportiva">
+        <div
+          th:if="${#lists.isEmpty(destaques)}"
+          class="ilustracao"
+          aria-label="Ilustração de uma quadra esportiva"
+        >
           <div class="campo">
             <div class="linha-meio"></div>
             <div class="circulo"></div>
@@ -36,6 +41,43 @@
           </div>
           <span class="selo">O seu lugar é em quadra.</span>
         </div>
+        <section
+          th:unless="${#lists.isEmpty(destaques)}"
+          class="slider"
+          aria-roledescription="carrossel"
+          aria-label="Quadras para seu próximo jogo"
+        >
+          <figure th:each="f,iter : ${destaques}" th:hidden="${!iter.first}">
+            <a th:href="@{/cliente/quadras/{id}/horarios(id=${f.idQuadra})}"
+              ><img
+                class="foto-destaque"
+                th:src="@{/fotos/{id}(id=${f.id})}"
+                th:alt="${f.nome}"
+                th:loading="${iter.first?'eager':'lazy'}" />
+              <figcaption th:text="${f.nome}"></figcaption
+            ></a>
+          </figure>
+          <div class="slider-controles">
+            <button
+              type="button"
+              class="botao secundario"
+              data-slide="-1"
+              aria-label="Foto anterior"
+            >
+              ←</button
+            ><span class="slider-posicao" aria-live="polite"></span
+            ><button
+              type="button"
+              class="botao secundario"
+              data-slide="1"
+              aria-label="Próxima foto"
+            >
+              →</button
+            ><button type="button" class="botao secundario" data-pausar>
+              Pausar
+            </button>
+          </div>
+        </section>
       </section>
       <section class="passos">
         <article>

@@ -14,4 +14,5 @@ public record Reserva(
         String situacao,
         BigDecimal valorTotal,
         String nomeQuadra,
-        String nomeCliente) {}
+        String nomeCliente,
+        int toleranciaMinutos) {}

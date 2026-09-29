@@ -1,0 +1,95 @@
+/* Complementos da Sprint 3; app.css restaurado permanece intacto. */
+#mapa {
+  height: 340px;
+  width: 100%;
+  margin: 16px 0;
+  border-radius: 12px;
+  z-index: 0;
+}
+details {
+  margin: 16px 0;
+}
+summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 12px 8px 0;
+}
+.check input {
+  width: auto;
+  margin: 0;
+}
+fieldset {
+  border: 1px solid #ccd7d0;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 16px 0;
+}
+.filtros {
+  flex-wrap: wrap;
+}
+.filtros > div {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.acoes {
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.cabecalho {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.cabecalho nav {
+  flex-wrap: wrap;
+}
+.seletor-mapa .leaflet-control a {
+  color: #222;
+}
+.dias-padrao {
+  font-weight: 600;
+}
+.horario small {
+  display: block;
+}
+.aviso article + article {
+  border-top: 1px solid #ccd7d0;
+  margin-top: 12px;
+}
+.aviso {
+  overflow-wrap: anywhere;
+}
+#sugestoes {
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.estreita {
+  max-width: 760px;
+}
+.painel input,
+.painel select {
+  max-width: 100%;
+}
+@media (max-width: 600px) {
+  .cabecalho nav {
+    gap: 10px;
+  }
+  .agenda-layout {
+    grid-template-columns: 1fr;
+  }
+  .dupla {
+    grid-template-columns: 1fr;
+  }
+  #mapa {
+    height: 280px;
+  }
+}
+
+.painel.horario {
+  padding: 24px;
+  margin-bottom: 16px;
+}

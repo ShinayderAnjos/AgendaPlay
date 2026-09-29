@@ -24,6 +24,46 @@
         </p>
       </div>
       <div th:replace="~{fragmentos :: avisos}"></div>
+      <div class="acoes" th:if="${dono}">
+        <a
+          class="botao"
+          th:href="@{/proprietario/quadras/{id}/padroes(id=${quadra.id})}"
+          >Padrões semanais</a
+        ><a th:href="@{/proprietario/agenda(quadra=${quadra.id})}"
+          >Agenda da quadra</a
+        >
+        <a th:href="@{/reservas(quadra=${quadra.id})}">Reservas dos clientes e baixas</a>
+      </div>
+      <a
+        th:if="${quadra.latitude!=null}"
+        target="_blank"
+        rel="noopener noreferrer"
+        th:href="@{https://www.google.com/maps/search/(api=1,query=${quadra.latitude+','+quadra.longitude})}"
+        >Ver localização no Google Maps</a
+      >
+      <section th:if="${!#lists.isEmpty(fotos)}" class="galeria">
+        <h2>Conheça a quadra</h2>
+        <div class="galeria-fotos">
+          <a
+            th:each="f : ${fotos}"
+            th:href="@{/fotos/{id}(id=${f.id})}"
+            target="_blank"
+            rel="noopener"
+            ><img
+              class="foto-quadra"
+              th:src="@{/fotos/{id}(id=${f.id})}"
+              th:alt="${f.capa ? 'Foto de capa de '+quadra.nome : 'Foto de '+quadra.nome}"
+              loading="lazy"
+          /></a>
+        </div>
+      </section>
+      <section th:if="${!#lists.isEmpty(avaliacoesQuadra)}">
+        <h2>Avaliações de quem jogou</h2>
+        <article th:each="a : ${avaliacoesQuadra}" class="painel">
+          <strong th:text="${a.nota}+' de 5 estrelas'"></strong>
+          <p th:text="${a.comentario}"></p>
+        </article>
+      </section>
       <div class="agenda-layout">
         <section class="painel">
           <h2
@@ -32,11 +72,12 @@
           <p class="texto-menor">
             Horários de Brasília · intervalos no mesmo dia.
           </p>
+          <div class="filtro-dia"><label for="dia-agenda">Consultar um dia</label><input id="dia-agenda" type="date"><button type="button" class="botao secundario pequeno" id="todos-dias">Mostrar todos os dias</button><p id="dia-sem-horarios" role="status" hidden>Nenhum horário neste dia.</p></div>
           <div th:if="${dono}">
             <p th:if="${#lists.isEmpty(disponibilidades)}" class="vazio-texto">
               Nenhum horário cadastrado. Adicione o primeiro intervalo ao lado.
             </p>
-            <article class="horario" th:each="d : ${disponibilidades}">
+            <article class="horario" th:each="d : ${disponibilidades}" th:attr="data-dia=${d.data}">
               <div>
                 <strong
                   th:text="${#temporals.format(d.data,'dd/MM/yyyy')}"
@@ -46,6 +87,10 @@
                   <span th:text="${d.horaFim}"></span>
                 </p>
                 <small th:text="${d.ativo ? 'Ativa' : 'Inativa'}"></small>
+                <p
+                  class="texto-menor"
+                  th:text="'R$ '+${d.valorHora==null ? quadra.valorHora : d.valorHora}+' / hora · intervalo: '+${d.toleranciaMinutos}+' min'"
+                ></p>
               </div>
               <form
                 th:if="${d.ativo}"
@@ -62,20 +107,23 @@
             <p th:if="${#lists.isEmpty(horarios)}" class="vazio-texto">
               Não há horários livres para esta quadra no momento.
             </p>
-            <article class="horario" th:each="h : ${horarios}">
+            <article class="horario" th:each="h : ${horarios}" th:attr="data-dia=${h.data}">
               <div>
                 <strong
                   th:text="${#temporals.format(h.data,'dd/MM/yyyy')}"
                 ></strong>
                 <p>
                   <span th:text="${h.horaInicio}"></span> –
-                  <span th:text="${h.horaFim}"></span>
+                  <span th:text="${h.horaFim}"></span
+                  ><small
+                    th:text="' · R$ '+${h.valorHora}+' / hora · intervalo: '+${h.toleranciaMinutos}+' min'"
+                  ></small>
                 </p>
               </div>
               <button
                 type="button"
                 class="botao secundario pequeno escolher-horario"
-                th:attr="data-data=${h.data},data-inicio=${h.horaInicio},data-fim=${h.horaFim}"
+                th:attr="data-data=${h.data},data-inicio=${h.horaInicio},data-fim=${h.horaFim},data-valor=${h.valorHora}"
               >
                 Escolher
               </button>
@@ -121,6 +169,31 @@
                   step="60"
                 />
               </div>
+            </div>
+            <div th:if="${dono}">
+              <label for="valorHora">Valor por hora deste horário (R$)</label
+              ><input
+                id="valorHora"
+                th:field="*{valorHora}"
+                type="number"
+                min="0"
+                max="99999999.99"
+                step="0.01"
+                th:placeholder="${quadra.valorHora}"
+              /><label for="toleranciaMinutos"
+                >Intervalo após a reserva (minutos)</label
+              ><input
+                id="toleranciaMinutos"
+                th:field="*{toleranciaMinutos}"
+                type="number"
+                min="0"
+                max="1440"
+                th:placeholder="${quadra.toleranciaMinutos}"
+              />
+              <p class="texto-menor">
+                Deixe em branco para usar os valores da quadra. O intervalo é
+                respeitado também em reservas parciais.
+              </p>
             </div>
             <p
               th:if="${!dono}"

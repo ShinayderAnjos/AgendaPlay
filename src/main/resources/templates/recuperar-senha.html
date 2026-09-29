@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragmentos :: head('Recuperar senha')}"></head>
+  <body>
+    <header th:replace="~{fragmentos :: header}"></header>
+    <main class="pagina">
+      <h1 class="titulo">Recuperar senha</h1>
+      <div th:replace="~{fragmentos :: avisos}"></div>
+      <section class="painel recuperacao">
+        <p>
+          Informe o e-mail da sua conta para receber um link de redefinição
+          válido por 30 minutos.
+        </p>
+        <form th:action="@{/recuperar-senha}" method="post">
+          <label for="email">E-mail da conta</label
+          ><input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            maxlength="160"
+            required
+          /><button class="botao" type="submit">
+            Enviar link de recuperação
+          </button>
+        </form>
+        <p><a th:href="@{/login}">Voltar para entrar</a></p>
+      </section>
+    </main>
+    <footer th:replace="~{fragmentos :: footer}"></footer>
+  </body>
+</html>

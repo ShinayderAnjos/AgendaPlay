@@ -5,6 +5,30 @@ import jakarta.validation.constraints.*;
 import java.time.*;
 
 public class PeriodoForm {
+    @DecimalMin("0")
+    @Digits(integer = 8, fraction = 2)
+    private java.math.BigDecimal valorHora;
+
+    @Min(0)
+    @Max(1440)
+    private Integer toleranciaMinutos;
+
+    public java.math.BigDecimal getValorHora() {
+        return valorHora;
+    }
+
+    public void setValorHora(java.math.BigDecimal v) {
+        valorHora = v;
+    }
+
+    public Integer getToleranciaMinutos() {
+        return toleranciaMinutos;
+    }
+
+    public void setToleranciaMinutos(Integer v) {
+        toleranciaMinutos = v;
+    }
+
     @NotNull(message = "Informe a data.")
     @org.springframework.format.annotation.DateTimeFormat(
             iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)

@@ -9,4 +9,7 @@ public record Disponibilidade(
         LocalDate data,
         LocalTime horaInicio,
         LocalTime horaFim,
-        boolean ativo) {}
+        boolean ativo,
+        Long idPadrao,
+        java.math.BigDecimal valorHora,
+        int toleranciaMinutos) {}

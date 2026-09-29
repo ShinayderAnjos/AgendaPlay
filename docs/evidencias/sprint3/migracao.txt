@@ -1,0 +1,46 @@
+BEGIN
+CREATE SCHEMA
+SET
+CREATE EXTENSION
+psql:tmp/verificar-migracao.sql:4: NOTICE:  extension "btree_gist" already exists, skipping
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE TABLE
+INSERT 0 1
+ALTER TABLE
+UPDATE 1
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+DO
+                                 resultado                                 
+---------------------------------------------------------------------------
+ Migração preservou contas, quadras, disponibilidade e reservas adjacentes
+(1 row)
+
+ROLLBACK

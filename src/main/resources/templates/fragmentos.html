@@ -9,14 +9,43 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title th:text="${titulo} + ' | AgendaPlay'">AgendaPlay</title>
     <link rel="stylesheet" th:href="@{/css/app.css}" />
+    <link rel="stylesheet" th:href="@{/vendor/leaflet/leaflet.css}" />
+    <link rel="stylesheet" th:href="@{/css/sprint3.css}" />
+    <script defer th:src="@{/vendor/leaflet/leaflet.js}"></script>
     <script defer th:src="@{/js/app.js}"></script>
+    <script defer th:src="@{/js/sprint3.js}"></script>
+    <script defer th:src="@{/js/sprint4.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/sprint4.css}" />
+    <link rel="icon" type="image/png" th:href="@{/imagens/logo.png}" />
+    <meta name="referrer" content="same-origin" />
   </head>
   <body>
     <header th:fragment="header" class="cabecalho">
       <a class="marca" th:href="@{/}"
-        ><span class="marca-icone">A</span>Agenda<span>Play</span></a
+        ><img
+          class="marca-logo"
+          th:src="@{/imagens/logo.png}"
+          alt=""
+          width="48"
+          height="48"
+        />Agenda<span>Play</span></a
       >
       <nav aria-label="Menu principal">
+        <a
+          sec:authorize="hasRole('PROPRIETARIO')"
+          th:href="@{/proprietario/estabelecimentos}"
+          >Estabelecimentos</a
+        >
+        <a
+          sec:authorize="hasRole('PROPRIETARIO')"
+          th:href="@{/proprietario/agenda}"
+          >Agenda</a
+        >
+        <a
+          sec:authorize="hasRole('CLIENTE')"
+          th:href="@{/cliente/estabelecimentos}"
+          >Estabelecimentos</a
+        >
         <a sec:authorize="isAuthenticated()" th:href="@{/painel}">Quadras</a
         ><a sec:authorize="isAuthenticated()" th:href="@{/reservas}">Reservas</a
         ><a sec:authorize="isAuthenticated()" th:href="@{/conta}"
@@ -39,6 +68,22 @@
       </nav>
     </header>
     <div th:fragment="avisos">
+      <section
+        th:if="${notificacoes != null and !#lists.isEmpty(notificacoes)}"
+        class="aviso"
+        aria-label="Cancelamentos"
+        role="status"
+      >
+        <h2>Cancelamentos recentes</h2>
+        <article th:each="n : ${notificacoes}">
+          <p th:text="${n.mensagem}"></p>
+          <form th:action="@{/notificacoes/{id}/ler(id=${n.id})}" method="post">
+            <button class="botao secundario pequeno" type="submit">
+              Marcar como lida
+            </button>
+          </form>
+        </article>
+      </section>
       <div
         th:if="${sucesso}"
         class="aviso sucesso"
@@ -64,7 +109,15 @@
       </ul>
     </div>
     <footer th:fragment="footer">
-      <span class="marca-texto">AgendaPlay</span
+      <span class="marca-texto"
+        ><img
+          class="marca-logo"
+          th:src="@{/imagens/logo.png}"
+          alt=""
+          width="40"
+          height="40"
+        />
+        AgendaPlay</span
       ><span>Seu esporte, na hora certa.</span
       ><span>Projeto acadêmico · versão de testes</span>
     </footer>
