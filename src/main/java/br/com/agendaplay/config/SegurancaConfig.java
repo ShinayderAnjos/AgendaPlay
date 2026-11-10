@@ -38,6 +38,7 @@ public class SegurancaConfig {
                                                 "/cadastro/**",
                                                 "/recuperar-senha",
                                                 "/redefinir-senha",
+                                                "/validar-codigo",
                                                 "/imagens/**",
                                                 "/fotos/**",
                                                 "/css/**",

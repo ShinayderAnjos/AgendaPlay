@@ -1,0 +1,17 @@
+{
+  "resultado": "aprovado",
+  "data": "2026-11-09T16:58:12.520Z",
+  "errosJavaScript": [],
+  "fluxos": [
+    "abertura por estabelecimento",
+    "entrada opcional de 50%",
+    "parcelas com formas diferentes",
+    "saldo remanescente e quitação",
+    "consulta do cliente sem ações de recebimento",
+    "conferência de dinheiro físico",
+    "fechamento com diferença",
+    "estorno em caixa posterior",
+    "preservação do fechamento anterior",
+    "390px sem overflow"
+  ]
+}

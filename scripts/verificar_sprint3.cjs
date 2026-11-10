@@ -86,6 +86,8 @@ const assert = require("assert/strict");
   await page
     .getByRole("link", { name: "+ Cadastrar quadra", exact: true })
     .click();
+  await page.waitForURL("**/proprietario/quadras/nova");
+  await page.waitForLoadState("load");
   await page
     .getByLabel("Estabelecimento", { exact: true })
     .selectOption({ label: "Centro Esportivo Sprint 3" });

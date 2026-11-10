@@ -366,7 +366,7 @@ const smtp = net.createServer((socket) => {
     await page.goto(base + "/recuperar-senha");
     await page.getByLabel("E-mail da conta").fill(email);
     await page
-      .getByRole("button", { name: "Enviar link de recuperação", exact: true })
+      .getByRole("button", { name: "Enviar código de recuperação", exact: true })
       .click();
     await page
       .getByText("Se o e-mail estiver cadastrado", { exact: false })
@@ -378,10 +378,12 @@ const smtp = net.createServer((socket) => {
         raw.split("\r\n\r\n").slice(1).join("\r\n\r\n"),
         "base64",
       ).toString();
-    const match = raw.match(/token=([A-Za-z0-9_-]{43})/);
-    assert(match, "E-mail deve conter o link com token");
-    const resetUrl = base + "/redefinir-senha?token=" + match[1];
-    await page.goto(resetUrl);
+    const match = raw.match(/\b([0-9]{6})\b/);
+    assert(match, "E-mail deve conter o código de seis dígitos");
+    await page.getByLabel("Código de verificação").fill(match[1]);
+    await page.getByRole("button", { name: "Validar código", exact: true }).click();
+    await page.waitForURL("**/redefinir-senha");
+    const resetUrl = base + "/redefinir-senha";
     // A backend validation error must also keep both password fields intact.
     await page.locator("#senha").fill("SenhaNovaSprint4!");
     await page.locator("#confirmacaoSenha").fill("OutraSenha123!");
@@ -401,7 +403,7 @@ const smtp = net.createServer((socket) => {
     await logout();
     await page.goto(resetUrl);
     await page
-      .getByText("Link inválido, expirado ou já utilizado.", { exact: true })
+      .getByText("Validação inválida, expirada ou já utilizada. Solicite um novo código.", { exact: true })
       .waitFor();
     assert.deepEqual(errors, []);
     assert.deepEqual(dialogs, []);
@@ -436,7 +438,7 @@ const smtp = net.createServer((socket) => {
             "avaliação pelo cliente",
             "e-mail capturado em SMTP local",
             "redefinição e login com senha nova",
-            "link de uso único",
+            "código por e-mail e validação de uso único",
           ],
         },
         null,

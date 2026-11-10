@@ -1,0 +1,27 @@
+.financeiro-resumo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 28px 0 8px; }
+.financeiro-resumo .painel { padding: 22px; }
+.financeiro-resumo h2 { font-size: 16px; margin: 0 0 8px; }
+.financeiro-resumo strong { font-size: 27px; color: var(--verde); }
+.financeiro-lista { display: grid; gap: 16px; }
+.financeiro-item { display: flex; justify-content: space-between; gap: 24px; padding: 24px; }
+.financeiro-item h3 { margin: 4px 0; }
+.financeiro-item p { margin: 7px 0; }
+.financeiro-acoes { display: grid; justify-items: end; align-content: center; gap: 12px; min-width: 220px; }
+.financeiro-acoes form { display: grid; gap: 8px; width: 100%; }
+.financeiro-dados { min-width: 0; flex: 1; }
+.financeiro-acoes { max-width: 300px; }
+.financeiro-valores { display: flex; flex-wrap: wrap; gap: 20px; margin: 18px 0; }
+.financeiro-valores dt { font-size: 14px; color: var(--muted, #53645b); }
+.financeiro-valores dd { margin: 4px 0 0; font-weight: 700; font-size: 20px; }
+.financeiro-historico { padding-left: 20px; line-height: 1.8; }
+.financeiro-historico small { display: block; }
+.caixa-abertura, .caixa-conferencia { padding: 24px; margin: 24px 0; }
+.caixa-abertura form, .caixa-conferencia form { display: grid; gap: 10px; max-width: 560px; }
+.tabela-rolagem { overflow-x: auto; }
+.tabela-rolagem table { width: 100%; border-collapse: collapse; text-align: left; }
+.tabela-rolagem th, .tabela-rolagem td { padding: 12px; border-bottom: 1px solid #dce5dd; white-space: nowrap; }
+@media (max-width: 700px) {
+  .financeiro-resumo { grid-template-columns: 1fr; }
+  .financeiro-item { display: block; }
+  .financeiro-acoes { justify-items: start; min-width: 0; margin-top: 16px; }
+}

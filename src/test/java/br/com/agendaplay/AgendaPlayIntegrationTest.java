@@ -39,6 +39,8 @@ class AgendaPlayIntegrationTest {
     @Autowired UsuarioService contas;
     @Autowired QuadraService quadras;
     @Autowired AgendaService agenda;
+    @Autowired FinanceiroService financeiro;
+    @Autowired CaixaService caixas;
     @Autowired AgendaRepository repositorio;
     @Autowired PasswordEncoder senhas;
     private UsuarioAutenticado dono, outroDono, cliente, outroCliente;
@@ -108,6 +110,40 @@ class AgendaPlayIntegrationTest {
         f.setHoraInicio(LocalTime.parse(inicio));
         f.setHoraFim(LocalTime.parse(fim));
         return f;
+    }
+
+    @Test
+    void financeiroRegistraRecebimentoEEstornoComIsolamento() throws Exception {
+        long reserva = agenda.reservar(quadra, periodo("10:00", "11:00"), cliente);
+        caixas.abrir(estabelecimento, BigDecimal.ZERO, dono);
+        assertThat(financeiro.consultar(dono, null).pendente()).isEqualByComparingTo("90.00");
+        assertThat(financeiro.consultar(outroDono, null).lancamentos()).isEmpty();
+        assertThatThrownBy(() -> financeiro.registrar(reserva, "PIX", outroDono))
+                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> financeiro.registrar(reserva, "INVALIDA", dono))
+                .isInstanceOf(RegraNegocioException.class);
+
+        mvc.perform(get("/proprietario/financeiro").with(user(dono)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Financeiro")));
+        mvc.perform(get("/proprietario/financeiro").with(user(cliente)))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/proprietario/financeiro/" + reserva + "/receber")
+                        .with(user(dono)).with(csrf()).param("forma", "PIX")
+                        .param("valor", "90.00").param("chave", java.util.UUID.randomUUID().toString()))
+                .andExpect(status().is3xxRedirection());
+        assertThat(financeiro.consultar(dono, null).recebido()).isEqualByComparingTo("90.00");
+        assertThatThrownBy(() -> financeiro.registrar(reserva, "PIX", dono))
+                .isInstanceOf(RegraNegocioException.class);
+
+        agenda.cancelar(reserva, cliente);
+        assertThat(financeiro.consultar(dono, null).estornoPendente())
+                .isEqualByComparingTo("90.00");
+        financeiro.registrarEstorno(reserva, dono);
+        assertThat(financeiro.consultar(dono, null).estornoPendente())
+                .isEqualByComparingTo("0");
+        assertThat(financeiro.consultar(dono, null).lancamentos().getFirst().estadoFinanceiro())
+                .isEqualTo("ESTORNADO");
     }
 
     @Test
@@ -1007,7 +1043,9 @@ class AgendaPlayIntegrationTest {
         org.mockito.Mockito.verify(mail).send(captor.capture());
         var text = captor.getValue().getText();
         assertThat(captor.getValue().getTo()).containsExactly("cliente@example.test");
-        return text.substring(text.indexOf("token=") + 6).split("\\s")[0];
+        var matcher = java.util.regex.Pattern.compile("verificação é: ([0-9]{6})").matcher(text);
+        assertThat(matcher.find()).isTrue();
+        return recuperacao.validarCodigo("cliente@example.test", matcher.group(1));
     }
 
     @Test
@@ -1286,6 +1324,7 @@ class AgendaPlayIntegrationTest {
         assertThatThrownBy(() -> recuperacao.redefinir(token, "NovaSenha123!", "NovaSenha123!"))
                 .isInstanceOf(RegraNegocioException.class);
         org.mockito.Mockito.clearInvocations(mail);
+        jdbc.update("UPDATE recuperacao_envio SET enviado_em=current_timestamp-interval '2 minutes'");
         recuperacao.solicitar("cliente@example.test");
         String novo = tokenEnviado();
         assertThat(novo).isNotEqualTo(token);
@@ -1405,5 +1444,182 @@ class AgendaPlayIntegrationTest {
         var pool=Executors.newFixedThreadPool(2);var inicio=new CountDownLatch(1);
         Callable<Boolean> tarefa=()->{inicio.await();try{recuperacao.redefinir(token,"NovaSenha123!","NovaSenha123!");return true;}catch(RegraNegocioException e){return false;}};
         try{var a=pool.submit(tarefa);var b=pool.submit(tarefa);inicio.countDown();assertThat(List.of(a.get(20,TimeUnit.SECONDS),b.get(20,TimeUnit.SECONDS))).containsExactlyInAnyOrder(true,false);}finally{pool.shutdownNow();}
+    }
+
+    private void parcela(long reserva, String valor, String forma) {
+        financeiro.registrar(reserva, forma, new BigDecimal(valor), java.util.UUID.randomUUID(), dono);
+    }
+
+    @Test void sprint2ParcelasAtualizamSaldoSemImporCinquentaPorCento() throws Exception {
+        long reserva=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        caixas.abrir(estabelecimento,BigDecimal.ZERO,dono);
+        parcela(reserva,"20.00","PIX");
+        var parcial=financeiro.consultarCliente(cliente,YearMonth.from(data));
+        assertThat(parcial.pendente()).isEqualByComparingTo("70.00");
+        assertThat(parcial.recebido()).isEqualByComparingTo("20.00");
+        assertThat(parcial.lancamentos().getFirst().estadoFinanceiro()).isEqualTo("PARCIAL");
+        parcela(reserva,"25.00","DINHEIRO");
+        parcela(reserva,"45.00","CARTAO");
+        var quitado=financeiro.consultarCliente(cliente,null);
+        assertThat(quitado.pendente()).isEqualByComparingTo("0");
+        assertThat(quitado.parcelas().get(reserva)).hasSize(3);
+        assertThat(quitado.lancamentos().getFirst().estadoFinanceiro()).isEqualTo("RECEBIDO");
+        mvc.perform(get("/cliente/financeiro").with(user(cliente)))
+            .andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("Meu financeiro")));
+        assertThat(financeiro.consultarCliente(outroCliente,null).lancamentos()).isEmpty();
+        assertThat(financeiro.consultarCliente(cliente,YearMonth.from(data).plusMonths(1)).lancamentos()).isEmpty();
+        assertThatThrownBy(()->parcela(reserva,"0.01","PIX")).isInstanceOf(RegraNegocioException.class);
+    }
+
+    @Test void sprint2ImpedeValoresInvalidosEReenvioDuplicado() {
+        long reserva=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        assertThatThrownBy(()->parcela(reserva,"45.00","PIX")).isInstanceOf(RegraNegocioException.class);
+        caixas.abrir(estabelecimento,BigDecimal.ZERO,dono);
+        for(String valor:List.of("0","-1","90.01","1.001","10000000000.00"))
+            assertThatThrownBy(()->parcela(reserva,valor,"PIX")).isInstanceOf(RegraNegocioException.class);
+        var chave=java.util.UUID.randomUUID();
+        financeiro.registrar(reserva,"PIX",new BigDecimal("45"),chave,dono);
+        financeiro.registrar(reserva,"PIX",new BigDecimal("45"),chave,dono);
+        assertThat(financeiro.consultar(dono,null).recebido()).isEqualByComparingTo("45");
+        assertThatThrownBy(()->financeiro.registrar(reserva,"PIX",new BigDecimal("44"),chave,dono))
+            .isInstanceOf(RegraNegocioException.class);
+        assertThatThrownBy(()->parcela(reserva,"46","DINHEIRO")).isInstanceOf(RegraNegocioException.class);
+    }
+
+    @Test void sprint2CaixaConferenciaSeparaDinheiroDeOutrasFormas() throws Exception {
+        long reserva=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        long caixa=caixas.abrir(estabelecimento,new BigDecimal("100"),dono);
+        assertThatThrownBy(()->caixas.abrir(estabelecimento,BigDecimal.ZERO,dono))
+            .isInstanceOf(RegraNegocioException.class);
+        parcela(reserva,"45","PIX"); parcela(reserva,"45","DINHEIRO");
+        var resumo=caixas.resumo(caixa,dono);
+        assertThat(resumo.entradas()).isEqualByComparingTo("90");
+        assertThat(resumo.dinheiroEsperado()).isEqualByComparingTo("145");
+        mvc.perform(get("/proprietario/caixa").with(user(dono))).andExpect(status().isOk());
+        mvc.perform(get("/proprietario/caixa/"+caixa).with(user(dono))).andExpect(status().isOk());
+        caixas.fechar(caixa,new BigDecimal("140"),"Diferença na conferência",dono);
+        assertThat(caixas.propria(caixa,dono).diferenca()).isEqualByComparingTo("-5");
+        assertThatThrownBy(()->caixas.fechar(caixa,new BigDecimal("140"),"",dono))
+            .isInstanceOf(RegraNegocioException.class);
+        long outra=agenda.reservar(quadra,periodo("12:00","13:00"),cliente);
+        assertThatThrownBy(()->parcela(outra,"10","PIX")).isInstanceOf(RegraNegocioException.class);
+        long novo=caixas.abrir(estabelecimento,BigDecimal.ZERO,dono);
+        parcela(outra,"10","PIX");
+        assertThat(caixas.resumo(caixa,dono).entradas()).isEqualByComparingTo("90");
+        assertThat(caixas.resumo(novo,dono).entradas()).isEqualByComparingTo("10");
+    }
+
+    @Test void sprint2CancelamentoEstornaSomenteORecebidoEmNovoCaixa() {
+        long reserva=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        long primeiro=caixas.abrir(estabelecimento,BigDecimal.ZERO,dono);
+        parcela(reserva,"30","DINHEIRO"); parcela(reserva,"15","PIX");
+        caixas.fechar(primeiro,new BigDecimal("30"),"",dono);
+        agenda.cancelar(reserva,cliente);
+        var antes=financeiro.consultarCliente(cliente,null);
+        assertThat(antes.pendente()).isEqualByComparingTo("0");
+        assertThat(antes.estornoPendente()).isEqualByComparingTo("45");
+        long segundo=caixas.abrir(estabelecimento,new BigDecimal("50"),dono);
+        assertThatThrownBy(()->parcela(reserva,"1","PIX")).isInstanceOf(RegraNegocioException.class);
+        financeiro.registrarEstorno(reserva,dono);
+        var depois=financeiro.consultarCliente(cliente,null);
+        assertThat(depois.recebido()).isEqualByComparingTo("0");
+        assertThat(depois.estornoPendente()).isEqualByComparingTo("0");
+        assertThat(caixas.resumo(segundo,dono).estornos()).isEqualByComparingTo("45");
+        assertThat(caixas.resumo(segundo,dono).dinheiroEsperado()).isEqualByComparingTo("20");
+        assertThat(caixas.resumo(primeiro,dono).dinheiroEsperado()).isEqualByComparingTo("30");
+        assertThatThrownBy(()->financeiro.registrarEstorno(reserva,dono)).isInstanceOf(RegraNegocioException.class);
+    }
+
+    @Test void sprint2IsolamentoPermissoesECsrf() throws Exception {
+        long reserva=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        long caixa=caixas.abrir(estabelecimento,BigDecimal.ZERO,dono);
+        assertThat(caixas.listar(outroDono)).isEmpty();
+        assertThatThrownBy(()->caixas.abrir(estabelecimento,BigDecimal.ZERO,outroDono)).isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(()->caixas.resumo(caixa,outroDono)).isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(()->caixas.fechar(caixa,BigDecimal.ZERO,"",outroDono)).isInstanceOf(AccessDeniedException.class);
+        mvc.perform(get("/proprietario/caixa").with(user(cliente))).andExpect(status().isForbidden());
+        mvc.perform(get("/proprietario/caixa/"+caixa).with(user(outroDono))).andExpect(status().isForbidden());
+        mvc.perform(get("/cliente/financeiro").with(user(dono))).andExpect(status().isForbidden());
+        mvc.perform(post("/proprietario/financeiro/"+reserva+"/receber").with(user(cliente)).with(csrf())
+            .param("valor","45").param("forma","PIX").param("chave",java.util.UUID.randomUUID().toString())).andExpect(status().isForbidden());
+        mvc.perform(post("/proprietario/caixa/abrir").with(user(dono)).param("estabelecimento",""+estabelecimento).param("saldoInicial","0"))
+            .andExpect(status().isForbidden());
+        mvc.perform(post("/proprietario/financeiro/"+reserva+"/receber").with(user(dono)).with(csrf())
+            .param("valor","1.001").param("forma","PIX").param("chave",java.util.UUID.randomUUID().toString()))
+            .andExpect(flash().attributeExists("erro"));
+        assertThat(financeiro.consultar(dono,null).recebido()).isEqualByComparingTo("0");
+    }
+
+    @Test void sprint2ParcelasConcorrentesNaoUltrapassamTotal() throws Exception {
+        long reserva=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        caixas.abrir(estabelecimento,BigDecimal.ZERO,dono);
+        var pool=Executors.newFixedThreadPool(2); var inicio=new CountDownLatch(1);
+        Callable<Boolean> tarefa=()->{inicio.await();try{parcela(reserva,"60","PIX");return true;}catch(RegraNegocioException e){return false;}};
+        try {
+            var a=pool.submit(tarefa); var b=pool.submit(tarefa); inicio.countDown();
+            assertThat(List.of(a.get(20,TimeUnit.SECONDS),b.get(20,TimeUnit.SECONDS))).containsExactlyInAnyOrder(true,false);
+            assertThat(financeiro.consultar(dono,null).recebido()).isEqualByComparingTo("60");
+        } finally { pool.shutdownNow(); }
+    }
+
+    @Test void sprint2AberturaConcorrenteCriaUmUnicoCaixa() throws Exception {
+        var pool=Executors.newFixedThreadPool(2); var inicio=new CountDownLatch(1);
+        Callable<Boolean> tarefa=()->{inicio.await();try{caixas.abrir(estabelecimento,BigDecimal.ZERO,dono);return true;}catch(RegraNegocioException e){return false;}};
+        try {
+            var a=pool.submit(tarefa);var b=pool.submit(tarefa);inicio.countDown();
+            assertThat(List.of(a.get(20,TimeUnit.SECONDS),b.get(20,TimeUnit.SECONDS))).containsExactlyInAnyOrder(true,false);
+            assertThat(caixas.listar(dono)).hasSize(1);
+        } finally { pool.shutdownNow(); }
+    }
+
+    private String codigoEnviado() {
+        var captor=org.mockito.ArgumentCaptor.forClass(org.springframework.mail.SimpleMailMessage.class);
+        org.mockito.Mockito.verify(mail).send(captor.capture());
+        var matcher=java.util.regex.Pattern.compile("verificação é: ([0-9]{6})").matcher(captor.getValue().getText());
+        assertThat(matcher.find()).isTrue(); return matcher.group(1);
+    }
+
+    @Test void sprint2CodigoProtegidoLimitaTentativasEExpira() {
+        recuperacao.solicitar("cliente@example.test");
+        String codigo=codigoEnviado();
+        assertThat(senhas.matches(codigo,jdbc.queryForObject("SELECT codigo_hash FROM recuperacao_senha",String.class))).isTrue();
+        assertThat(recuperacao.valido(codigo)).isFalse();
+        String errado=codigo.equals("000000")?"111111":"000000";
+        for(int i=0;i<5;i++) assertThatThrownBy(()->recuperacao.validarCodigo("cliente@example.test",errado))
+            .isInstanceOf(RegraNegocioException.class);
+        assertThat(jdbc.queryForObject("SELECT tentativas FROM recuperacao_senha",Integer.class)).isEqualTo(5);
+        assertThatThrownBy(()->recuperacao.validarCodigo("cliente@example.test",codigo)).isInstanceOf(RegraNegocioException.class);
+        jdbc.update("UPDATE recuperacao_envio SET enviado_em=current_timestamp-interval '2 minutes'");
+        org.mockito.Mockito.clearInvocations(mail);
+        recuperacao.solicitar("cliente@example.test");String novo=codigoEnviado();
+        jdbc.update("UPDATE recuperacao_senha SET expira_em=current_timestamp-interval '1 minute'");
+        assertThatThrownBy(()->recuperacao.validarCodigo("cliente@example.test",novo)).isInstanceOf(RegraNegocioException.class);
+    }
+
+    @Test void sprint2CodigoHttpLiberaNovaSenhaSomenteNaSessaoValidada() throws Exception {
+        mvc.perform(post("/recuperar-senha").with(csrf()).param("email","cliente@example.test"))
+            .andExpect(view().name("validar-codigo"));
+        String codigo=codigoEnviado();
+        mvc.perform(post("/validar-codigo").param("email","cliente@example.test").param("codigo",codigo))
+            .andExpect(status().isForbidden());
+        var validacao=mvc.perform(post("/validar-codigo").with(csrf()).param("email","cliente@example.test").param("codigo",codigo))
+            .andExpect(redirectedUrl("/redefinir-senha")).andReturn();
+        var sessao=(MockHttpSession)validacao.getRequest().getSession(false);
+        mvc.perform(get("/redefinir-senha").session(sessao)).andExpect(model().attribute("valido",true));
+        mvc.perform(get("/redefinir-senha")).andExpect(model().attribute("valido",false));
+        assertThatThrownBy(()->recuperacao.validarCodigo("cliente@example.test",codigo)).isInstanceOf(RegraNegocioException.class);
+        mvc.perform(post("/redefinir-senha").session(sessao).with(csrf()).param("senha","NovaSenha123!").param("confirmacaoSenha","NovaSenha123!"))
+            .andExpect(redirectedUrl("/login?redefinida"));
+        assertThat(senhas.matches("NovaSenha123!",usuarios.buscarPorEmail("cliente@example.test").orElseThrow().getSenhaHash())).isTrue();
+    }
+
+    @Test void sprint2CodigoLimitaCincoEnviosPorHora() {
+        for(int i=0;i<5;i++) {
+            recuperacao.solicitar("cliente@example.test");
+            jdbc.update("UPDATE recuperacao_envio SET enviado_em=enviado_em-interval '2 minutes'");
+        }
+        recuperacao.solicitar("cliente@example.test");
+        org.mockito.Mockito.verify(mail,org.mockito.Mockito.times(5)).send(org.mockito.ArgumentMatchers.any(org.springframework.mail.SimpleMailMessage.class));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM recuperacao_envio",Long.class)).isEqualTo(5);
     }
 }

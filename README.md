@@ -1,5 +1,9 @@
 # AgendaPlay
 
+### Evolução financeira — Sprint 2
+
+Página financeira do cliente, recebimentos parciais com saldo remanescente, abertura e fechamento de caixa por estabelecimento e recuperação de senha por código enviado por e-mail. Consulte o [guia de uso e testes](docs/07_financeiro_sprint2.md).
+
 Plataforma web de gestão e agendamento de quadras esportivas. Versão 0.1.0 para testes da equipe.
 
 ## Comece por aqui
@@ -113,3 +117,9 @@ Para repetir os fluxos completos de navegador das Sprints 3 e 4, execute `powers
 Consulte a [validação de 28/09/2026 e preparação da apresentação](docs/07_validacao_sprint4.md), com resultados, evidências e a pendência de configuração do e-mail real.
 
 A [conferência do documento da Sprint 4](docs/08_conferencia_documento_sprint4.md) detalha os 11 requisitos e a correção da Agenda: todas as datas aparecem inicialmente, e **Dar baixa** fica disponível após o comparecimento, a partir do início da reserva. Depois da baixa, o cliente pode avaliar em Reservas.
+
+## N2: primeira etapa do financeiro
+
+O proprietário acessa **Financeiro** no menu para consultar as reservas de suas quadras, filtrar pelo mês da reserva e registrar manualmente a forma de recebimento (Pix, dinheiro, cartão, transferência ou outro). O valor vem da reserva confirmada e não é recalculado. O resumo mostra valores por receber, recebidos e estornos pendentes. Uma reserva cancelada sem recebimento sai dos totais; se já havia recebimento, aparece como estorno pendente até o proprietário registrar que o estorno foi realizado.
+
+O registro é administrativo: a aplicação não cobra o cliente nem transfere ou devolve dinheiro. A migração `V6__recebimentos.sql` cria a tabela de recebimentos sem alterar as reservas existentes. Apenas o proprietário da quadra pode ver ou registrar seus recebimentos. A operação preserva o histórico mesmo após cancelamento.

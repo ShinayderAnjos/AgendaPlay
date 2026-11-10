@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Caixa')}"></head>
+<body>
+<header th:replace="~{fragmentos :: header}"></header>
+<main class="pagina">
+  <p class="etiqueta">GESTÃO FINANCEIRA</p><h1 class="titulo">Caixa</h1>
+  <p>Abra um caixa por estabelecimento para registrar os recebimentos e estornos do período.</p>
+  <p><a th:href="@{/proprietario/financeiro}">Voltar ao financeiro</a></p>
+  <div th:replace="~{fragmentos :: avisos}"></div>
+  <section class="painel caixa-abertura">
+    <h2>Abrir caixa</h2>
+    <p class="texto-menor">Informe apenas o dinheiro disponível na abertura. Pix, cartão e transferência são apurados separadamente.</p>
+    <p th:if="${#lists.isEmpty(estabelecimentos)}">Cadastre um estabelecimento para abrir o caixa.</p>
+    <form th:unless="${#lists.isEmpty(estabelecimentos)}" th:action="@{/proprietario/caixa/abrir}" method="post">
+      <label for="estabelecimento">Estabelecimento</label>
+      <select id="estabelecimento" name="estabelecimento" required><option value="">Selecione</option><option th:each="e : ${estabelecimentos}" th:value="${e.id}" th:text="${e.nome}"></option></select>
+      <label for="saldoInicial">Dinheiro na abertura (R$)</label>
+      <input id="saldoInicial" name="saldoInicial" type="number" min="0" max="9999999999.99" step="0.01" value="0.00" required />
+      <button class="botao" type="submit">Abrir caixa</button>
+    </form>
+  </section>
+  <h2>Histórico de caixas</h2>
+  <p th:if="${#lists.isEmpty(caixas)}" class="vazio">Nenhum caixa aberto até o momento.</p>
+  <div class="financeiro-lista">
+    <article class="painel financeiro-item" th:each="c : ${caixas}">
+      <div><h3 th:text="${c.nomeEstabelecimento}"></h3>
+        <p th:text="'Caixa #' + ${c.id} + ' · Aberto em ' + ${#temporals.format(c.abertoEm,'dd/MM/yyyy HH:mm')}"></p>
+        <p th:if="${c.fechadoEm != null}" th:text="'Fechado em ' + ${#temporals.format(c.fechadoEm,'dd/MM/yyyy HH:mm')}"></p>
+        <span class="badge" th:text="${c.fechadoEm == null ? 'ABERTO' : 'FECHADO'}"></span>
+      </div>
+      <a class="botao secundario" th:href="@{/proprietario/caixa/{id}(id=${c.id})}">Ver caixa</a>
+    </article>
+  </div>
+</main>
+<footer th:replace="~{fragmentos :: footer}"></footer>
+</body></html>

@@ -37,9 +37,9 @@
           /><button class="botao" type="submit">Salvar nova senha</button>
         </form>
         <p th:unless="${valido}" class="aviso erro">
-          Link inválido, expirado ou já utilizado.
+          Validação inválida, expirada ou já utilizada. Solicite um novo código.
         </p>
-        <p><a th:href="@{/recuperar-senha}">Solicitar novo link</a></p>
+        <p><a th:href="@{/recuperar-senha}">Solicitar novo código</a></p>
       </section>
     </main>
     <footer th:replace="~{fragmentos :: footer}"></footer>

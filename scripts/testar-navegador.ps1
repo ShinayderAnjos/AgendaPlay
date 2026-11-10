@@ -51,6 +51,8 @@ try {
     Copy-Item 'tmp/sprint3-browser-result.json' 'docs/evidencias/sprint3/navegador-revalidado.json' -Force
     & node scripts/verificar_sprint4.cjs
     if ($LASTEXITCODE -ne 0) { throw 'Sprint 4 falhou.' }
+    & node scripts/verificar_financeiro.cjs
+    if ($LASTEXITCODE -ne 0) { throw 'Financeiro da Sprint 2 falhou.' }
 } finally {
     if ($app -and -not $app.HasExited) { Stop-Process -Id $app.Id }
     if (-not $alreadyRunning) { & (Join-Path $PostgresBin 'pg_ctl.exe') -D $testData -m fast -w stop }

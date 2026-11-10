@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Conferência do caixa')}"></head>
+<body>
+<header th:replace="~{fragmentos :: header}"></header>
+<main class="pagina" th:with="c=${resumoCaixa.caixa}">
+  <p class="etiqueta">GESTÃO FINANCEIRA</p><h1 class="titulo" th:text="'Caixa #' + ${c.id}"></h1>
+  <p th:text="${c.nomeEstabelecimento} + ' · ' + ${c.fechadoEm == null ? 'ABERTO' : 'FECHADO'}"></p>
+  <p th:text="'Abertura: ' + ${#temporals.format(c.abertoEm,'dd/MM/yyyy HH:mm')}"></p>
+  <p th:if="${c.fechadoEm != null}" th:text="'Fechamento: ' + ${#temporals.format(c.fechadoEm,'dd/MM/yyyy HH:mm')}"></p>
+  <p><a th:href="@{/proprietario/caixa}">Todos os caixas</a> · <a th:href="@{/proprietario/financeiro}">Registrar recebimentos</a></p>
+  <div th:replace="~{fragmentos :: avisos}"></div>
+  <section class="financeiro-resumo">
+    <article class="painel"><h2>Dinheiro na abertura</h2><strong th:text="'R$ ' + ${#numbers.formatDecimal(c.saldoInicial,1,'POINT',2,'COMMA')}"></strong></article>
+    <article class="painel"><h2>Entradas (todas as formas)</h2><strong th:text="'R$ ' + ${#numbers.formatDecimal(resumoCaixa.entradas,1,'POINT',2,'COMMA')}"></strong></article>
+    <article class="painel"><h2>Estornos (todas as formas)</h2><strong th:text="'R$ ' + ${#numbers.formatDecimal(resumoCaixa.estornos,1,'POINT',2,'COMMA')}"></strong></article>
+  </section>
+  <section class="painel caixa-conferencia">
+    <h2>Conferência por forma de recebimento</h2>
+    <div class="tabela-rolagem"><table><thead><tr><th>Forma</th><th>Entradas</th><th>Estornos</th></tr></thead><tbody>
+      <tr th:each="f : ${resumoCaixa.formas}"><td th:text="${f.forma}"></td><td th:text="'R$ ' + ${#numbers.formatDecimal(f.entradas,1,'POINT',2,'COMMA')}"></td><td th:text="'R$ ' + ${#numbers.formatDecimal(f.estornos,1,'POINT',2,'COMMA')}"></td></tr>
+    </tbody></table></div>
+    <p th:if="${#lists.isEmpty(resumoCaixa.formas)}">Sem movimentações neste caixa.</p>
+    <p><strong th:text="'Dinheiro esperado no fechamento: R$ ' + ${#numbers.formatDecimal(resumoCaixa.dinheiroEsperado,1,'POINT',2,'COMMA')}"></strong></p>
+    <p class="texto-menor">Dinheiro esperado = saldo de abertura + recebimentos em dinheiro − estornos em dinheiro. As demais formas não alteram o dinheiro físico.</p>
+    <th:block th:if="${c.fechadoEm != null}">
+      <p th:text="'Dinheiro contado: R$ ' + ${#numbers.formatDecimal(c.saldoInformado,1,'POINT',2,'COMMA')}"></p>
+      <p th:text="'Diferença (contado − esperado): R$ ' + ${#numbers.formatDecimal(c.diferenca,1,'POINT',2,'COMMA')}"></p>
+      <p th:if="${!#strings.isEmpty(c.observacao)}" th:text="'Observação: ' + ${c.observacao}"></p>
+    </th:block>
+    <form th:if="${c.fechadoEm == null}" th:action="@{/proprietario/caixa/{id}/fechar(id=${c.id})}" method="post">
+      <h3>Fechar caixa</h3><label for="saldoInformado">Dinheiro contado no fechamento (R$)</label>
+      <input id="saldoInformado" name="saldoInformado" type="number" min="0" max="9999999999.99" step="0.01" required />
+      <label for="observacao">Observação da conferência (opcional)</label><textarea id="observacao" name="observacao" maxlength="500" rows="3"></textarea>
+      <p class="texto-menor">O fechamento encerra as operações deste caixa. Abra outro para os próximos recebimentos.</p>
+      <button class="botao" type="submit">Confirmar fechamento</button>
+    </form>
+  </section>
+  <h2>Movimentações</h2><div class="tabela-rolagem"><table>
+    <thead><tr><th>Data</th><th>Reserva</th><th>Tipo</th><th>Forma</th><th>Valor</th></tr></thead>
+    <tbody><tr th:each="m : ${movimentos}"><td th:text="${#temporals.format(m.data,'dd/MM/yyyy HH:mm')}"></td><td th:text="'#' + ${m.idReserva}"></td><td th:text="${m.tipo}"></td><td th:text="${m.forma}"></td><td th:text="'R$ ' + ${#numbers.formatDecimal(m.valor,1,'POINT',2,'COMMA')}"></td></tr></tbody>
+  </table></div>
+</main>
+<footer th:replace="~{fragmentos :: footer}"></footer>
+</body></html>
