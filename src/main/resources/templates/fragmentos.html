@@ -48,7 +48,9 @@
           >Financeiro</a
         >
         <a sec:authorize="hasRole('PROPRIETARIO')" th:href="@{/proprietario/caixa}">Caixa</a>
+        <a sec:authorize="hasRole('PROPRIETARIO')" th:href="@{/proprietario/painel-financeiro}">Painel financeiro</a>
         <a sec:authorize="hasRole('CLIENTE')" th:href="@{/cliente/financeiro}">Meu financeiro</a>
+        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/cliente/carteira}">Carteira</a>
         <a
           sec:authorize="hasRole('CLIENTE')"
           th:href="@{/cliente/estabelecimentos}"

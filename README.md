@@ -1,5 +1,9 @@
 # AgendaPlay
 
+## Resumo da entrega de 16 de novembro de 2026
+
+Atualização com carteira virtual, recargas simuladas, pagamento de reservas, cashback, estorno automático e painel financeiro com despesas e filtros. O [resumo das alterações e dos testes](docs/AgendaPlay_Resumo_Alteracoes_e_Testes.pdf) apresenta os integrantes, os resultados consolidados e o link do repositório. O relatório completo e a planilha de testes estão em `Testes/`.
+
 ### Evolução financeira — Sprint 2
 
 Página financeira do cliente, recebimentos parciais com saldo remanescente, abertura e fechamento de caixa por estabelecimento e recuperação de senha por código enviado por e-mail. Consulte o [guia de uso e testes](docs/07_financeiro_sprint2.md).
@@ -123,3 +127,7 @@ A [conferência do documento da Sprint 4](docs/08_conferencia_documento_sprint4.
 O proprietário acessa **Financeiro** no menu para consultar as reservas de suas quadras, filtrar pelo mês da reserva e registrar manualmente a forma de recebimento (Pix, dinheiro, cartão, transferência ou outro). O valor vem da reserva confirmada e não é recalculado. O resumo mostra valores por receber, recebidos e estornos pendentes. Uma reserva cancelada sem recebimento sai dos totais; se já havia recebimento, aparece como estorno pendente até o proprietário registrar que o estorno foi realizado.
 
 O registro é administrativo: a aplicação não cobra o cliente nem transfere ou devolve dinheiro. A migração `V6__recebimentos.sql` cria a tabela de recebimentos sem alterar as reservas existentes. Apenas o proprietário da quadra pode ver ou registrar seus recebimentos. A operação preserva o histórico mesmo após cancelamento.
+
+## Carteira e painel financeiro
+
+A carteira virtual do cliente oferece recargas simuladas, pagamento de reservas, cashback e histórico de estornos. O proprietário tem um painel de receitas, recebimentos, despesas e resultado com filtros. Consulte [as regras de contabilização e configuração](docs/09_carteira_e_controle_financeiro.md). Inicie pela raiz com `iniciar.cmd`; o Flyway aplica a migração V9 sem limpar o banco.

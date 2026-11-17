@@ -72,6 +72,13 @@
               th:text="${r.situacao}"
             ></span>
             <p th:if="${!dono and r.situacao=='CONFIRMADA'}" class="texto-menor">Avaliação aguardando a baixa pelo proprietário da quadra.</p>
+            <div th:if="${!dono and r.situacao=='CONFIRMADA' and financeiroReservas[r.id].saldoRestante.signum() > 0}">
+              <p th:text="'Saldo da carteira: R$ ' + ${#numbers.formatDecimal(saldoCarteira,1,'POINT',2,'COMMA')} + ' · A pagar: R$ ' + ${#numbers.formatDecimal(financeiroReservas[r.id].saldoRestante,1,'POINT',2,'COMMA')}"></p>
+              <form th:action="@{/cliente/carteira/reservas/{id}/pagar(id=${r.id})}" method="post">
+                <button class="botao pequeno" type="submit">Pagar com carteira</button>
+              </form>
+              <a th:href="@{/cliente/carteira}">Ver carteira ou fazer recarga simulada</a>
+            </div>
           </div>
           <form
             th:if="${r.situacao=='CONFIRMADA'}"

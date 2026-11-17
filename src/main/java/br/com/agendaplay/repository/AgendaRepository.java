@@ -115,6 +115,10 @@ public class AgendaRepository {
         return jdbc.sql(RESERVAS + " WHERE r.id=?").param(id).query(Reserva.class).optional();
     }
 
+    public Optional<Reserva> buscarReservaBloqueada(long id) {
+        return jdbc.sql(RESERVAS + " WHERE r.id=? FOR UPDATE OF r").param(id).query(Reserva.class).optional();
+    }
+
     public long reservar(
             long cliente,
             long quadra,

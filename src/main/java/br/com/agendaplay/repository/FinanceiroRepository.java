@@ -59,7 +59,7 @@ public class FinanceiroRepository {
     public void estornar(long id,long caixa) {
         jdbc.sql("""
             UPDATE recebimento SET estornado_em=current_timestamp,id_caixa_estorno=?
-            WHERE id_reserva=? AND estornado_em IS NULL
+            WHERE id_reserva=? AND estornado_em IS NULL AND forma<>'CARTEIRA'
             """).params(caixa,id).update();
     }
     public record EstadoReserva(long idProprietario,long idEstabelecimento,String situacao,

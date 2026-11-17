@@ -1,0 +1,24 @@
+<!doctype html><html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Painel financeiro')}"></head><body>
+<header th:replace="~{fragmentos :: header}"></header><main class="pagina">
+<p class="etiqueta">CONTROLE DO PROPRIETÁRIO</p><h1 class="titulo">Painel financeiro</h1>
+<p>Receita é o valor das reservas; recebido é o total efetivamente registrado, inclusive pela carteira. Resultado é recebido menos despesas. Recargas e cashback não são receita do estabelecimento.</p>
+<div th:replace="~{fragmentos :: avisos}"></div>
+<form class="filtros" method="get" th:action="@{/proprietario/painel-financeiro}">
+<label>De <input type="date" name="inicio" th:value="${inicio}" /></label><label>Até <input type="date" name="fim" th:value="${fim}" /></label>
+<label>Estabelecimento <select name="estabelecimento"><option value="">Todos</option><option th:each="e : ${estabelecimentos}" th:value="${e.id}" th:text="${e.nome}" th:selected="${filtroEstabelecimento == e.id}"></option></select></label>
+<button class="botao" type="submit">Filtrar</button><a th:href="@{/proprietario/painel-financeiro}">Limpar</a></form>
+<section class="financeiro-resumo"><article class="painel"><h2>Receitas</h2><strong th:text="'R$ ' + ${#numbers.formatDecimal(resumo.receita,1,'POINT',2,'COMMA')}"></strong></article>
+<article class="painel"><h2>Recebido</h2><strong th:text="'R$ ' + ${#numbers.formatDecimal(resumo.recebido,1,'POINT',2,'COMMA')}"></strong></article>
+<article class="painel"><h2>Despesas</h2><strong th:text="'R$ ' + ${#numbers.formatDecimal(resumo.despesasTotal,1,'POINT',2,'COMMA')}"></strong></article>
+<article class="painel"><h2>Resultado</h2><strong th:text="'R$ ' + ${#numbers.formatDecimal(resumo.resultado,1,'POINT',2,'COMMA')}"></strong></article></section>
+<section class="painel"><h2>Registrar despesa</h2><form method="post" th:action="@{/proprietario/despesas}">
+<label>Estabelecimento <select name="estabelecimento" required><option value="">Selecione</option><option th:each="e : ${estabelecimentos}" th:value="${e.id}" th:text="${e.nome}"></option></select></label>
+<label>Descrição <input name="descricao" maxlength="200" required /></label><label>Valor (R$) <input name="valor" type="number" min="0.01" step="0.01" required /></label>
+<label>Data <input name="data" type="date" required /></label><button class="botao" type="submit">Registrar despesa</button></form></section>
+<section><h2>Receitas por reserva</h2><div class="painel" th:each="r : ${resumo.receitas}">
+<strong th:text="'Reserva #' + ${r.idReserva}"></strong> · <span th:text="${r.estabelecimento}"></span> · <span th:text="${#temporals.format(r.data,'dd/MM/yyyy')}"></span>
+<p th:text="'Receita R$ ' + ${#numbers.formatDecimal(r.valorTotal,1,'POINT',2,'COMMA')} + ' · Recebido R$ ' + ${#numbers.formatDecimal(r.recebido,1,'POINT',2,'COMMA')}"></p></div></section>
+<section><h2>Despesas</h2><div class="painel" th:each="d : ${resumo.despesas}"><strong th:text="${d.descricao}"></strong> · <span th:text="${d.estabelecimento}"></span> · <span th:text="${#temporals.format(d.data,'dd/MM/yyyy')}"></span>
+<p th:text="'R$ ' + ${#numbers.formatDecimal(d.valor,1,'POINT',2,'COMMA')}"></p></div></section>
+</main><footer th:replace="~{fragmentos :: footer}"></footer></body></html>

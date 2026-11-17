@@ -25,6 +25,7 @@ public class AgendaService {
     private final Clock relogio;
     private final PadraoService padroes;
     private final NotificacaoService notificacoes;
+    private final CarteiraService carteira;
     private final long antecedencia;
 
     public AgendaService(
@@ -34,6 +35,7 @@ public class AgendaService {
             Clock relogio,
             PadraoService padroes,
             NotificacaoService notificacoes,
+            CarteiraService carteira,
             @Value("${agendaplay.cancelamento-antecedencia-minutos:0}") long antecedencia) {
         this.agenda = agenda;
         this.quadras = quadras;
@@ -41,6 +43,7 @@ public class AgendaService {
         this.relogio = relogio;
         this.padroes = padroes;
         this.notificacoes = notificacoes;
+        this.carteira = carteira;
         this.antecedencia = antecedencia;
     }
 
@@ -226,7 +229,7 @@ public class AgendaService {
                 agenda.buscarReserva(id)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         var quadra = bloquear(original.idQuadra());
-        var reserva = agenda.buscarReserva(id).orElseThrow();
+        var reserva = agenda.buscarReservaBloqueada(id).orElseThrow();
         boolean cliente =
                 usuario.getPerfil() == Perfil.CLIENTE && reserva.idCliente() == usuario.getId();
         boolean dono =
@@ -241,6 +244,7 @@ public class AgendaService {
                 .isAfter(LocalDateTime.now(relogio).plusMinutes(antecedencia)))
             throw new RegraNegocioException("O prazo de cancelamento desta reserva terminou.");
         agenda.cancelar(id);
+        carteira.estornarCancelamento(id, reserva.idCliente());
         notificacoes.cancelamento(reserva, quadra, usuario);
     }
 }

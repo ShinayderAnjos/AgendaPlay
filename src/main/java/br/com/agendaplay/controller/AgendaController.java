@@ -23,6 +23,8 @@ import java.time.LocalDate;
 public class AgendaController {
     @org.springframework.beans.factory.annotation.Autowired private FotoService fotos;
     @org.springframework.beans.factory.annotation.Autowired private AvaliacaoService avaliacoes;
+    @org.springframework.beans.factory.annotation.Autowired private FinanceiroService financeiro;
+    @org.springframework.beans.factory.annotation.Autowired private CarteiraService carteira;
     private final AgendaService agenda;
     private final QuadraService quadras;
     private final EstabelecimentoService estabelecimentos;
@@ -117,6 +119,11 @@ public class AgendaController {
         model.addAttribute("avaliacoes", avaliacoes.doCliente(usuario.getId()));
         model.addAttribute("agora", java.time.LocalDateTime.now(clock));
         model.addAttribute("reservas", agenda.minhasReservas(usuario, quadra, data));
+        if(usuario.getPerfil()==Perfil.CLIENTE) {
+            model.addAttribute("saldoCarteira",carteira.saldo(usuario));
+            model.addAttribute("financeiroReservas",financeiro.consultarCliente(usuario,null).lancamentos().stream()
+                    .collect(java.util.stream.Collectors.toMap(br.com.agendaplay.model.LancamentoFinanceiro::idReserva,x->x)));
+        }
         model.addAttribute("dono", usuario.getPerfil() == Perfil.PROPRIETARIO);
         model.addAttribute("quadras", quadras.minhas(usuario.getId()));
         model.addAttribute("filtroQuadra", quadra);

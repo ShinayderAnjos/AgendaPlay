@@ -1,6 +1,6 @@
 {
   "resultado": "aprovado",
-  "data": "2026-11-09T16:58:06.246Z",
+  "data": "2026-09-29T00:24:54.228Z",
   "errosJavaScript": [],
   "dialogosNativos": [],
   "fluxos": [
@@ -26,6 +26,6 @@
     "avaliação pelo cliente",
     "e-mail capturado em SMTP local",
     "redefinição e login com senha nova",
-    "código por e-mail e validação de uso único"
+    "link de uso único"
   ]
 }

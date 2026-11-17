@@ -41,6 +41,8 @@ class AgendaPlayIntegrationTest {
     @Autowired AgendaService agenda;
     @Autowired FinanceiroService financeiro;
     @Autowired CaixaService caixas;
+    @Autowired CarteiraService carteira;
+    @Autowired PainelFinanceiroService painelFinanceiro;
     @Autowired AgendaRepository repositorio;
     @Autowired PasswordEncoder senhas;
     private UsuarioAutenticado dono, outroDono, cliente, outroCliente;
@@ -994,6 +996,31 @@ class AgendaPlayIntegrationTest {
     }
 
     @Test
+    void disponibilidadeExistenteMantemPrecoRegistradoAposEdicaoDaQuadra() {
+        agenda.inativarDisponibilidade(quadra, repositorio.disponibilidades(quadra).getFirst().id(), dono);
+        var inicial = quadraForm("ATIVA");
+        inicial.setValorHora(new BigDecimal("100.00"));
+        quadras.salvar(quadra, inicial, dono);
+        agenda.disponibilizar(quadra, periodo("08:00", "18:00"), dono);
+        var alterada = quadraForm("ATIVA");
+        alterada.setValorHora(new BigDecimal("120.00"));
+        quadras.salvar(quadra, alterada, dono);
+
+        var horarioExistente = repositorio.disponibilidades(quadra).stream()
+                .filter(d -> d.data().equals(data) && d.ativo())
+                .findFirst().orElseThrow();
+        assertThat(horarioExistente.valorHora()).isEqualByComparingTo("100.00");
+        long antiga = agenda.reservar(quadra, periodo("10:00", "11:00"), cliente);
+        assertThat(repositorio.buscarReserva(antiga).orElseThrow().valorTotal())
+                .isEqualByComparingTo("100.00");
+
+        agenda.disponibilizar(quadra, periodo("19:00", "20:00"), dono);
+        long nova = agenda.reservar(quadra, periodo("19:00", "20:00"), outroCliente);
+        assertThat(repositorio.buscarReserva(nova).orElseThrow().valorTotal())
+                .isEqualByComparingTo("120.00");
+    }
+
+    @Test
     void precoDePadroesVariaEntreDiasDaMesmaQuadra() {
         padroes.criar(quadra, padrao(), dono);
         var f = padrao();
@@ -1509,6 +1536,22 @@ class AgendaPlayIntegrationTest {
         assertThat(caixas.resumo(novo,dono).entradas()).isEqualByComparingTo("10");
     }
 
+    @Test
+    void sprint2FechamentoComCemDeDiferencaRegistraValorNegativo() {
+        long reserva = agenda.reservar(quadra, periodo("10:00", "11:00"), cliente);
+        long caixa = caixas.abrir(estabelecimento, new BigDecimal("100.00"), dono);
+        parcela(reserva, "30.00", "DINHEIRO");
+        parcela(reserva, "60.00", "PIX");
+
+        assertThat(caixas.resumo(caixa, dono).dinheiroEsperado())
+                .isEqualByComparingTo("130.00");
+        caixas.fechar(caixa, new BigDecimal("30.00"), "Diferença na conferência", dono);
+        var fechado = caixas.propria(caixa, dono);
+        assertThat(fechado.saldoEsperado()).isEqualByComparingTo("130.00");
+        assertThat(fechado.saldoInformado()).isEqualByComparingTo("30.00");
+        assertThat(fechado.diferenca()).isEqualByComparingTo("-100.00");
+    }
+
     @Test void sprint2CancelamentoEstornaSomenteORecebidoEmNovoCaixa() {
         long reserva=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
         long primeiro=caixas.abrir(estabelecimento,BigDecimal.ZERO,dono);
@@ -1621,5 +1664,65 @@ class AgendaPlayIntegrationTest {
         recuperacao.solicitar("cliente@example.test");
         org.mockito.Mockito.verify(mail,org.mockito.Mockito.times(5)).send(org.mockito.ArgumentMatchers.any(org.springframework.mail.SimpleMailMessage.class));
         assertThat(jdbc.queryForObject("SELECT count(*) FROM recuperacao_envio",Long.class)).isEqualTo(5);
+    }
+    @Test void carteiraBloqueiaSaldoInsuficienteEIsolaCliente() {
+        long id=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        assertThatThrownBy(()->carteira.pagar(id,cliente)).isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("Saldo insuficiente");
+        carteira.recarregar(new BigDecimal("90.00"),java.util.UUID.randomUUID(),cliente);
+        assertThatThrownBy(()->carteira.pagar(id,outroCliente)).isInstanceOf(AccessDeniedException.class);
+        carteira.pagar(id,cliente);
+        assertThat(carteira.saldo(cliente)).isEqualByComparingTo("4.50");
+        assertThat(carteira.saldo(outroCliente)).isEqualByComparingTo("0");
+        assertThat(financeiro.consultar(dono,null).recebido()).isEqualByComparingTo("90.00");
+    }
+
+    @Test void carteiraEvitaDuplicidadeEEstornaComReversaoDoCashback() {
+        long id=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        var chave=java.util.UUID.randomUUID();
+        carteira.recarregar(new BigDecimal("100.00"),chave,cliente);
+        carteira.recarregar(new BigDecimal("100.00"),chave,cliente);
+        assertThatThrownBy(()->carteira.recarregar(new BigDecimal("50.00"),chave,cliente))
+                .isInstanceOf(RegraNegocioException.class);
+        carteira.pagar(id,cliente); carteira.pagar(id,cliente);
+        assertThat(carteira.saldo(cliente)).isEqualByComparingTo("14.50");
+        agenda.cancelar(id,cliente);
+        agenda.cancelar(id,cliente);
+        assertThat(carteira.saldo(cliente)).isEqualByComparingTo("100.00");
+        assertThat(carteira.historico(cliente)).extracting(CarteiraService.Movimento::tipo)
+                .containsExactly("REVERSAO_CASHBACK","ESTORNO","CASHBACK","PAGAMENTO","RECARGA");
+        assertThat(financeiro.consultar(dono,null).recebido()).isEqualByComparingTo("0");
+    }
+
+    @Test void painelCalculaReceitasDespesasEPermissoes() throws Exception {
+        long id=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        carteira.recarregar(new BigDecimal("100.00"),java.util.UUID.randomUUID(),cliente);
+        carteira.pagar(id,cliente);
+        painelFinanceiro.despesa(estabelecimento,"Energia",new BigDecimal("30.00"),data,dono);
+        var resumo=painelFinanceiro.consultar(data,data,estabelecimento,dono);
+        assertThat(resumo.receita()).isEqualByComparingTo("90.00");
+        assertThat(resumo.recebido()).isEqualByComparingTo("90.00");
+        assertThat(resumo.despesasTotal()).isEqualByComparingTo("30.00");
+        assertThat(resumo.resultado()).isEqualByComparingTo("60.00");
+        assertThat(painelFinanceiro.consultar(null,null,null,outroDono).receitas()).isEmpty();
+        assertThatThrownBy(()->painelFinanceiro.despesa(estabelecimento,"Fraude",BigDecimal.ONE,data,outroDono))
+                .isInstanceOf(AccessDeniedException.class);
+        mvc.perform(get("/proprietario/painel-financeiro").with(user(cliente))).andExpect(status().isForbidden());
+        mvc.perform(get("/proprietario/painel-financeiro").with(user(dono))).andExpect(status().isOk());
+        mvc.perform(get("/cliente/carteira").with(user(cliente))).andExpect(status().isOk());
+    }
+
+    @Test void pagamentosSimultaneosNaoDuplicamDebito() throws Exception {
+        long id=agenda.reservar(quadra,periodo("10:00","11:00"),cliente);
+        carteira.recarregar(new BigDecimal("90.00"),java.util.UUID.randomUUID(),cliente);
+        var pool=Executors.newFixedThreadPool(2);
+        try {
+            var inicio=new CountDownLatch(1);
+            var a=pool.submit(()->{inicio.await(); carteira.pagar(id,cliente); return true;});
+            var b=pool.submit(()->{inicio.await(); carteira.pagar(id,cliente); return true;});
+            inicio.countDown(); assertThat(a.get(10,TimeUnit.SECONDS)).isTrue(); assertThat(b.get(10,TimeUnit.SECONDS)).isTrue();
+        } finally { pool.shutdownNow(); }
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM recebimento WHERE id_reserva="+id+" AND forma='CARTEIRA'",Long.class)).isEqualTo(1);
+        assertThat(carteira.saldo(cliente)).isEqualByComparingTo("4.50");
     }
 }
